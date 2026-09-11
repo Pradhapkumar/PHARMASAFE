@@ -1,3 +1,15 @@
+import os
+import sys
+
+# Ensure both workspace root and backend directory are in sys.path
+_current_file = os.path.abspath(__file__)
+_app_dir = os.path.dirname(_current_file)
+_backend_dir = os.path.dirname(_app_dir)
+_root_dir = os.path.dirname(_backend_dir)
+for _p in [_root_dir, _backend_dir, _app_dir]:
+    if _p and _p not in sys.path:
+        sys.path.insert(0, _p)
+
 import logging
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -34,15 +46,15 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
 )
 
-# CORS — only explicit origins; no wildcard
-if settings.BACKEND_CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+# CORS configuration supporting localhost, dynamic host, and Render deployment
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+    allow_origin_regex=r"https://.*\.onrender\.com|http://localhost.*|http://127\.0\.0\.1.*",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # ---- Centralized Exception Handlers ----
