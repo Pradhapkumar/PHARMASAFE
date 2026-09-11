@@ -1,11 +1,20 @@
 class AppConstants {
   // Default server URLs:
+  // - pharmasafe-2.onrender.com for Live Production Cloud
   // - 127.0.0.1:8000 for ADB reverse tcp:8000 tcp:8000
   // - 10.0.2.2:8000 for standard Android Emulator
-  // - Or physical device local network IP (e.g. 192.168.x.x:8000)
-  static const String defaultHost = '127.0.0.1:8000';
+  static const String defaultHost = 'pharmasafe-2.onrender.com';
   static String activeHost = defaultHost;
-  static String get baseUrl => 'http://$activeHost/api/v1';
+  
+  static String get baseUrl {
+    if (activeHost.startsWith('http://') || activeHost.startsWith('https://')) {
+      return '$activeHost/api/v1';
+    }
+    if (activeHost.contains('onrender.com') || !activeHost.contains(':')) {
+      return 'https://$activeHost/api/v1';
+    }
+    return 'http://$activeHost/api/v1';
+  }
 
   // Role definitions
   static const String rolePharmacy          = 'PHARMACY';

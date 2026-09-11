@@ -146,15 +146,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             TextField(
                               controller: _hostCtrl,
                               decoration: const InputDecoration(
                                 labelText: 'Server IP / Host',
-                                hintText: '192.168.1.X:8000 or 10.0.2.2:8000',
+                                hintText: 'pharmasafe-2.onrender.com',
                                 isDense: true,
                               ),
                               style: const TextStyle(fontSize: 13, fontFamily: 'monospace'),
+                            ),
+                            const SizedBox(height: 10),
+                            Wrap(
+                              spacing: 8,
+                              children: [
+                                ActionChip(
+                                  label: const Text('☁️ Live Render Cloud', style: TextStyle(fontSize: 11)),
+                                  onPressed: () {
+                                    _hostCtrl.text = 'pharmasafe-2.onrender.com';
+                                    ref.read(apiServiceProvider).updateHost('pharmasafe-2.onrender.com');
+                                    setState(() => _showHostConfig = false);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Connected to Live Cloud Backend!')),
+                                    );
+                                  },
+                                ),
+                                ActionChip(
+                                  label: const Text('💻 Local ADB', style: TextStyle(fontSize: 11)),
+                                  onPressed: () {
+                                    _hostCtrl.text = '127.0.0.1:8000';
+                                    ref.read(apiServiceProvider).updateHost('127.0.0.1:8000');
+                                    setState(() => _showHostConfig = false);
+                                  },
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 8),
                             Row(
