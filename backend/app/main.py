@@ -145,10 +145,87 @@ def health_check_alias():
 
 
 @app.get("/", tags=["System"])
-def root():
+def root(request: Request):
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept:
+        from fastapi.responses import HTMLResponse
+        return HTMLResponse(content="""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <title>PharmaSafe Intelligence API</title>
+          <style>
+            body { background: #0b0f19; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+            .card { background: #131b2e; border: 1px solid #1e293b; border-radius: 16px; padding: 40px; max-width: 540px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+            h1 { color: #10b981; font-size: 24px; margin-bottom: 8px; }
+            p { color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 12px 0; }
+            .badge { display: inline-block; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: bold; margin-bottom: 16px; }
+            .btn { display: inline-block; background: #10b981; color: #022c22; font-weight: bold; padding: 10px 24px; border-radius: 8px; text-decoration: none; margin: 8px; font-size: 14px; transition: all 0.2s; }
+            .btn:hover { background: #34d399; }
+            .btn-secondary { background: #1e293b; color: #38bdf8; border: 1px solid #334155; }
+            .btn-secondary:hover { background: #334155; }
+            code { background: #0f172a; color: #38bdf8; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <span class="badge">● PRODUCTION API ACTIVE</span>
+            <h1>PharmaSafe Intelligence Core API</h1>
+            <p>You have connected to the <strong>authoritative backend engine</strong>. This cloud node handles real-time pharmaceutical safety verification, Dead Batch cryptography, and AI surveillance.</p>
+            <p>To view the <strong>Visual Web Dashboard</strong>, please open your Frontend Web App deployment link (e.g. <code>pharmasafe-web.onrender.com</code>).</p>
+            <div style="margin-top: 24px;">
+              <a href="/docs" class="btn">Explore API Swagger Docs (/docs)</a>
+              <a href="/api/health" class="btn btn-secondary">Check System Health</a>
+            </div>
+          </div>
+        </body>
+        </html>
+        """)
     return {
         "message": "Welcome to PharmaSafe Intelligence Core API",
+        "service": "PharmaSafe Closed-Loop Medicine Safety Platform",
         "docs": "/docs",
         "health": "/api/health",
         "api_v1": settings.API_V1_STR,
     }
+
+
+# Catch-all fallback for frontend routes navigated directly on the backend domain
+@app.get("/{full_path:path}", tags=["System"], include_in_schema=False)
+def frontend_route_fallback(full_path: str, request: Request):
+    if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("redoc") or full_path.startswith("openapi.json"):
+        return JSONResponse(status_code=404, content={"detail": "API endpoint not found"})
+    
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept:
+        from fastapi.responses import HTMLResponse
+        return HTMLResponse(content=f"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <title>PharmaSafe API Guidance</title>
+          <style>
+            body {{ background: #0b0f19; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }}
+            .card {{ background: #131b2e; border: 1px solid #1e293b; border-radius: 16px; padding: 40px; max-width: 540px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }}
+            h1 {{ color: #38bdf8; font-size: 22px; margin-bottom: 8px; }}
+            p {{ color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 12px 0; }}
+            code {{ background: #0f172a; color: #10b981; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 13px; }}
+            .btn {{ display: inline-block; background: #10b981; color: #022c22; font-weight: bold; padding: 10px 24px; border-radius: 8px; text-decoration: none; margin: 8px; font-size: 14px; }}
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <h1>Web Dashboard Route Detected</h1>
+            <p>You requested <code>/{full_path}</code> on the <strong>Backend API server</strong>.</p>
+            <p>The visual User Interface runs on your <strong>Frontend Web Service</strong> (e.g. <code>https://pharmasafe-web.onrender.com/{full_path}</code>).</p>
+            <div style="margin-top: 20px;">
+              <a href="/docs" class="btn">View Backend API Documentation</a>
+            </div>
+          </div>
+        </body>
+        </html>
+        """)
+    return JSONResponse(status_code=404, content={"detail": f"Route '/{full_path}' is a frontend UI route. Please access via the frontend web application."})
+

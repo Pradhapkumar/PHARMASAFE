@@ -382,7 +382,7 @@ export const DashboardPage: React.FC = () => {
           onClick: () => navigate('/disposal'),
         },
         {
-          title: 'Incinerated Lots (Phase 7)',
+          title: 'Certified Disposed Batches',
           value: metrics.destroyedBatches.toLocaleString(),
           subtext: '1200°C Thermal destruction complete',
           change: 'Disposed Status',

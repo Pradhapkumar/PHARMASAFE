@@ -308,7 +308,7 @@ export const OnlineSafetyPage: React.FC = () => {
         badge={
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-cyan-950/60 border border-cyan-500/40 text-cyan-300">
             <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
-            Phase 9 Sovereign Verifier v1.0
+            Marketplace Safety Sentinel v1.0
           </span>
         }
         actions={

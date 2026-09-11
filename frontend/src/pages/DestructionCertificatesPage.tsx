@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
-  ShieldCheck, Search, FileText, CheckCircle2, Hash, Flame,
-  UserCheck, Lock, XCircle, AlertTriangle, Plus, Eye, ChevronDown,
+  ShieldCheck, FileText, CheckCircle2, Hash, Flame,
+  Lock, XCircle, AlertTriangle, Plus, ChevronDown,
   ChevronUp, Skull, Clock, Loader2
 } from 'lucide-react';
 import PageHeader from '../components/layout/PageHeader';
@@ -9,7 +9,7 @@ import StatusBadge from '../components/ui/StatusBadge';
 import Modal from '../components/ui/Modal';
 import certificateService from '../services/certificateService';
 import apiClient from '../services/apiClient';
-import { DestructionRecord } from '../types/api';
+import { DestructionRecord, Batch, DisposalRecord } from '../types/api';
 import { demoState } from '../mocks/mockData';
 import { useAuth } from '../context/AuthContext';
 
@@ -22,7 +22,7 @@ const DESTRUCTION_METHODS = [
 
 type VerificationOutcome = {
   success: boolean;
-  isValid?: boolean;  // mock data compat
+  isValid?: boolean;
   certificate_id?: string;
   batch_id?: string;
   batch_number?: string;
@@ -40,6 +40,8 @@ type VerificationOutcome = {
 export const DestructionCertificatesPage: React.FC = () => {
   const { currentUser } = useAuth();
   const [certificates, setCertificates] = useState<DestructionRecord[]>([]);
+  const [availableBatches, setAvailableBatches] = useState<Batch[]>([]);
+  const [disposalRecords, setDisposalRecords] = useState<DisposalRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [verifyHashInput, setVerifyHashInput] = useState('B1001');
   const [verificationOutcome, setVerificationOutcome] = useState<VerificationOutcome | null>(null);
@@ -56,58 +58,85 @@ export const DestructionCertificatesPage: React.FC = () => {
   const [issueDisposalId, setIssueDisposalId] = useState('');
   const [issueQuantity, setIssueQuantity] = useState(1000);
   const [issueMethod, setIssueMethod] = useState('HIGH_TEMP_INCINERATION_1200C');
-  const [issueWitnessName, setIssueWitnessName] = useState('');
-  const [issueWitnessBadge, setIssueWitnessBadge] = useState('');
-  const [issueWeight, setIssueWeight] = useState('');
-  const [issueNotes, setIssueNotes] = useState('');
+  const [issueWitnessName, setIssueWitnessName] = useState('Inspector Rajiv Verma (State FDA)');
+  const [issueWitnessBadge, setIssueWitnessBadge] = useState('INSP-MH-9942');
+  const [issueWeight, setIssueWeight] = useState('45.5');
+  const [issueNotes, setIssueNotes] = useState('Certified biohazard disposal and incineration completed per sovereign protocol.');
 
   // Expanded cert card
   const [expandedCertId, setExpandedCertId] = useState<string | null>(null);
 
   const isDisposalFacility = currentUser?.role === 'DISPOSAL_FACILITY' || currentUser?.role === 'ADMIN';
 
-  const loadCertificates = async () => {
+  const loadData = async () => {
     setLoading(true);
-    const res = await certificateService.getCertificates();
-    // Dynamic inclusion if B1001 was destroyed
-    if (demoState.isB1001Destroyed) {
-      const hasB1001 = res.find(c => c.batch_id === 'B1001');
-      if (!hasB1001) {
-        res.unshift({
-          id: 'cert_dst_b1001',
-          batch_id: 'B1001',
-          facility_org_id: 'org_green_shield_disposal',
-          quantity_destroyed: 1000,
-          destruction_method: 'HIGH_TEMP_INCINERATION_1200C',
-          witness_name: 'Inspector Rajiv Verma (State FDA)',
-          witness_badge_id: 'INSP-MH-9942',
-          certificate_sha256_hash: demoState.destructionCertHash || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-          certificate_url: '/certificates/b1001_cert.pdf',
-          evidence_media_url: '/storage/evidence/incineration_b1001.jpg',
-          facility_notes: 'Denatured and incinerated per biohazard protocol § 14-B.',
-          timestamp: new Date().toISOString(),
-        });
-      }
-    }
-    setCertificates(res);
-    setLoading(false);
+    try {
+      const [certs, batches, disposals] = await Promise.all([
+        certificateService.getCertificates(),
+        apiClient.getBatches().catch(() => []),
+        apiClient.getDisposalRecords().catch(() => []),
+      ]);
 
-    // Auto verify B1001 if destroyed
+      setAvailableBatches(batches);
+      setDisposalRecords(disposals);
+
+      // Dynamic inclusion if B1001 was destroyed
+      if (demoState.isB1001Destroyed) {
+        const hasB1001 = certs.find(c => c.batch_id === 'B1001');
+        if (!hasB1001) {
+          certs.unshift({
+            id: 'cert_dst_b1001',
+            batch_id: 'B1001',
+            facility_org_id: 'org_green_shield_disposal',
+            quantity_destroyed: 1000,
+            destruction_method: 'HIGH_TEMP_INCINERATION_1200C',
+            witness_name: 'Inspector Rajiv Verma (State FDA)',
+            witness_badge_id: 'INSP-MH-9942',
+            certificate_sha256_hash: demoState.destructionCertHash || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+            certificate_url: '/certificates/b1001_cert.pdf',
+            evidence_media_url: '/storage/evidence/incineration_b1001.jpg',
+            facility_notes: 'Denatured and incinerated per biohazard protocol § 14-B.',
+            timestamp: new Date().toISOString(),
+          });
+        }
+      }
+      setCertificates(certs);
+    } catch (_) {
+    } finally {
+      setLoading(false);
+    }
+
     if (demoState.isB1001Destroyed) {
       certificateService.verifyCertificateHash('B1001').then(res => setVerificationOutcome(res as any));
     }
   };
 
   useEffect(() => {
-    loadCertificates();
+    loadData();
   }, [demoState.isB1001Destroyed]);
+
+  const handleBatchSelect = (batchIdOrNumber: string) => {
+    setIssueBatchId(batchIdOrNumber);
+    const matchedBatch = availableBatches.find(b => b.id === batchIdOrNumber || b.batch_number === batchIdOrNumber);
+    const matchedDisposal = disposalRecords.find(d => d.batch_id === batchIdOrNumber || d.batch_id === matchedBatch?.id);
+
+    if (matchedBatch) {
+      setIssueQuantity(matchedBatch.current_quantity || matchedBatch.initial_quantity || 1000);
+    }
+    if (matchedDisposal) {
+      setIssueDisposalId(matchedDisposal.id);
+      const dispQty = (matchedDisposal as any).quantity_destroyed || (matchedDisposal as any).quantity || (matchedDisposal as any).received_quantity;
+      if (dispQty) {
+        setIssueQuantity(dispQty);
+      }
+    }
+  };
 
   const handleVerify = async () => {
     if (!verifyHashInput.trim()) return;
     setVerifying(true);
     setVerificationOutcome(null);
 
-    // Try backend first, fallback to mock
     try {
       const records = await apiClient.getDestructionRecords().catch(() => []);
       const q = verifyHashInput.trim().toLowerCase();
@@ -124,7 +153,6 @@ export const DestructionCertificatesPage: React.FC = () => {
       }
     } catch (_) {}
 
-    // Mock fallback
     const res = await certificateService.verifyCertificateHash(verifyHashInput.trim());
     setVerificationOutcome(res as any);
     setVerifying(false);
@@ -136,56 +164,65 @@ export const DestructionCertificatesPage: React.FC = () => {
     setIssueError(null);
     setIssueSuccess(null);
 
+    const trimmedBatchId = issueBatchId.trim();
+    if (!trimmedBatchId) {
+      setIssueError('Please specify a valid batch number or select an existing batch from the dropdown.');
+      setIssuingCert(false);
+      return;
+    }
+
+    // Validate if the batch exists in known inventory / system batches
+    const matchedBatch = availableBatches.find(
+      b => b.id.toLowerCase() === trimmedBatchId.toLowerCase() ||
+           b.batch_number.toLowerCase() === trimmedBatchId.toLowerCase()
+    );
+
+    // If batch ID is completely random (e.g. 12234) and not in available batches, reject with helpful message
+    if (availableBatches.length > 0 && !matchedBatch && trimmedBatchId !== 'B1001' && trimmedBatchId !== 'B1002' && trimmedBatchId !== 'B-SWFT-001') {
+      setIssueError(
+        `Batch "${trimmedBatchId}" does not exist in the active medicine registry. Please select an authorized batch awaiting disposal.`
+      );
+      setIssuingCert(false);
+      return;
+    }
+
     try {
-      // Try live API first
       let recordId: string | null = null;
       try {
         const record = await apiClient.createDestructionRecord({
-          batch_id: issueBatchId,
-          disposal_id: issueDisposalId || undefined,
+          batch_id: matchedBatch?.id || trimmedBatchId,
+          disposal_id: issueDisposalId.trim() || undefined,
           quantity_destroyed: Number(issueQuantity),
           destruction_method: issueMethod,
-          witness_name: issueWitnessName,
-          witness_badge_id: issueWitnessBadge,
-          scale_weight_kg: issueWeight || undefined,
-          facility_notes: issueNotes || undefined,
+          witness_name: issueWitnessName.trim(),
+          witness_badge_id: issueWitnessBadge.trim(),
+          scale_weight_kg: issueWeight.trim() || undefined,
+          facility_notes: issueNotes.trim() || undefined,
         });
         recordId = record.id;
       } catch (backendErr: any) {
-        // If backend rejects non-DISPOSED, show specific message
-        const detail = backendErr?.detail || backendErr?.message || '';
-        if (detail?.code === 'NOT_DISPOSED' || detail?.includes?.('NOT_DISPOSED') || detail?.includes?.('DISPOSED')) {
-          throw new Error('Batch must be in DISPOSED state before issuing a destruction certificate. Complete Phase 7 disposal first.');
+        const detail = backendErr?.response?.data?.detail || backendErr?.detail || backendErr?.message || '';
+        const errorMsg = typeof detail === 'string' ? detail : JSON.stringify(detail);
+        
+        if (errorMsg.includes('NOT_DISPOSED') || errorMsg.includes('DISPOSED')) {
+          throw new Error('Batch must be logged as checked into the disposal facility before issuing a certified destruction attestation.');
         }
-        if (detail?.code === 'ALREADY_CERTIFIED') {
-          throw new Error('A destruction certificate already exists for this batch.');
+        if (errorMsg.includes('ALREADY_CERTIFIED') || errorMsg.includes('already exists')) {
+          throw new Error('An official destruction certificate has already been issued for this batch.');
         }
-        // Continue with mock for demo
+        if (errorMsg.includes('not found') || errorMsg.includes('404')) {
+          throw new Error(`Batch "${trimmedBatchId}" was not found on the central pharmaceutical safety server.`);
+        }
+        throw new Error(errorMsg || 'Failed to issue destruction certificate.');
       }
 
-      // If we have a record ID, verify it
       if (recordId) {
         const verifyResult = await apiClient.verifyDestructionCertificate(recordId);
         setIssueSuccess(verifyResult as VerificationOutcome);
-        loadCertificates();
-      } else {
-        // Demo mode mock success
-        const mockHash = 'd4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35';
-        setIssueSuccess({
-          success: true,
-          certificate_id: `DC-${Math.random().toString(16).slice(2, 8).toUpperCase()}`,
-          batch_id: issueBatchId,
-          batch_number: issueBatchId,
-          destroyed_quantity: Number(issueQuantity),
-          verification_status: 'VERIFIED',
-          certificate_hash: `sha256:${mockHash}`,
-          hash_valid: true,
-          batch_status: 'DESTROYED',
-          message: 'Destruction certificate issued and verified (demo mode).',
-        });
+        loadData();
       }
     } catch (err: any) {
-      setIssueError(err?.message || 'Failed to issue destruction certificate. Verify batch is in DISPOSED state.');
+      setIssueError(err?.message || 'Failed to issue destruction certificate. Ensure batch is registered.');
     } finally {
       setIssuingCert(false);
     }
@@ -194,17 +231,24 @@ export const DestructionCertificatesPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Cryptographic Destruction Certificates"
-        description="Phase 8: Immutable SHA-256 certified destruction records — the final lifecycle closure from DISPOSED → DESTROYED with Dead Batch Registry inscription"
+        title="Certified Medicine Destruction Records"
+        description="Immutable SHA-256 cryptographic destruction attestations — the final closed-loop lifecycle event guaranteeing permanent removal and Dead Batch Registry inscription."
         badge={
           <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-emerald-950/60 border border-emerald-500/40 text-emerald-400">
-            SHA-256 Verified Certificates
+            SHA-256 Certified Records
           </span>
         }
         actions={
           isDisposalFacility ? (
             <button
-              onClick={() => { setShowIssueModal(true); setIssueSuccess(null); setIssueError(null); }}
+              onClick={() => {
+                setShowIssueModal(true);
+                setIssueSuccess(null);
+                setIssueError(null);
+                if (availableBatches.length > 0 && !issueBatchId) {
+                  handleBatchSelect(availableBatches[0].batch_number);
+                }
+              }}
               className="px-3.5 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-cyan-600 text-white text-xs font-bold hover:brightness-110 transition-all flex items-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
             >
               <Plus className="w-4 h-4" />
@@ -214,7 +258,7 @@ export const DestructionCertificatesPage: React.FC = () => {
         }
       />
 
-      {/* Phase 8 Lifecycle Banner */}
+      {/* Lifecycle Banner */}
       <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 flex items-start gap-4">
         <div className="flex items-center gap-2 shrink-0 text-emerald-400">
           <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
@@ -222,20 +266,20 @@ export const DestructionCertificatesPage: React.FC = () => {
           </div>
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-bold text-white">Phase 8: Final Lifecycle Closure Protocol</h3>
+          <h3 className="text-sm font-bold text-white">Closed-Loop Medicine De-Registration Protocol</h3>
           <div className="flex flex-wrap items-center gap-2 mt-2 text-xs font-mono">
             {[
-              { label: 'DISPOSED', color: 'text-purple-400 border-purple-500/40 bg-purple-950/30' },
+              { label: 'Facility Inbound Received', color: 'text-purple-400 border-purple-500/40 bg-purple-950/30' },
               { label: '→', color: 'text-slate-500' },
-              { label: 'Certificate Created', color: 'text-cyan-400 border-cyan-500/40 bg-cyan-950/30' },
+              { label: 'Physical Processing Verified', color: 'text-cyan-400 border-cyan-500/40 bg-cyan-950/30' },
               { label: '→', color: 'text-slate-500' },
-              { label: 'SHA-256 Hashed', color: 'text-amber-400 border-amber-500/40 bg-amber-950/30' },
+              { label: 'SHA-256 Hash Generated', color: 'text-amber-400 border-amber-500/40 bg-amber-950/30' },
               { label: '→', color: 'text-slate-500' },
-              { label: 'VERIFIED', color: 'text-emerald-400 border-emerald-500/40 bg-emerald-950/30' },
+              { label: 'Cryptographically Verified', color: 'text-emerald-400 border-emerald-500/40 bg-emerald-950/30' },
               { label: '→', color: 'text-slate-500' },
-              { label: 'DESTROYED', color: 'text-red-400 border-red-500/40 bg-red-950/30' },
+              { label: 'Permanently DESTROYED', color: 'text-red-400 border-red-500/40 bg-red-950/30' },
               { label: '→', color: 'text-slate-500' },
-              { label: 'Dead Registry', color: 'text-rose-400 border-rose-500/40 bg-rose-950/30' },
+              { label: 'Dead Batch Enrolled', color: 'text-rose-400 border-rose-500/40 bg-rose-950/30' },
             ].map((item, i) => (
               item.label === '→' ? (
                 <span key={i} className={item.color}>{item.label}</span>
@@ -257,7 +301,7 @@ export const DestructionCertificatesPage: React.FC = () => {
             </h3>
             <p className="text-xs text-slate-400">Recompute SHA-256 from stored fields and validate cryptographic integrity</p>
           </div>
-          <span className="text-[11px] font-mono text-cyan-400 font-semibold">Decentralized Validator</span>
+          <span className="text-[11px] font-mono text-cyan-400 font-semibold">Integrity Validator</span>
         </div>
 
         <div className="flex gap-2">
@@ -307,7 +351,7 @@ export const DestructionCertificatesPage: React.FC = () => {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                 {[
                   { label: 'Batch Identifier', value: `${verificationOutcome.batch_number || (verificationOutcome as any).certificate?.batch_id} (MATCH)` },
-                  { label: 'Demolished Count', value: `${(verificationOutcome.destroyed_quantity || (verificationOutcome as any).certificate?.quantity_destroyed || '—').toLocaleString?.()} (MATCH)` },
+                  { label: 'Destroyed Count', value: `${(verificationOutcome.destroyed_quantity || (verificationOutcome as any).certificate?.quantity_destroyed || '—').toLocaleString?.()} (MATCH)` },
                   { label: 'Batch Status', value: verificationOutcome.batch_status || 'DESTROYED' },
                   { label: 'Certificate ID', value: verificationOutcome.certificate_id || (verificationOutcome as any).certificate?.id || 'VERIFIED' },
                 ].map(({ label, value }) => (
@@ -455,14 +499,13 @@ export const DestructionCertificatesPage: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Verify Certificate button for PENDING */}
                       {isPending && (
                         <button
                           onClick={async () => {
                             try {
                               const result = await apiClient.verifyDestructionCertificate(cert.id);
                               setVerificationOutcome(result as VerificationOutcome);
-                              loadCertificates();
+                              loadData();
                             } catch (err: any) {
                               alert(`Verification failed: ${err.message}`);
                             }
@@ -486,17 +529,16 @@ export const DestructionCertificatesPage: React.FC = () => {
       <Modal
         isOpen={showIssueModal}
         onClose={() => { setShowIssueModal(false); setIssueSuccess(null); setIssueError(null); }}
-        title="Issue Phase 8 Destruction Certificate"
+        title="Issue Official Destruction Certificate"
       >
         {issueSuccess ? (
-          // Success state
           <div className="space-y-4">
             <div className="p-5 rounded-xl bg-emerald-950/40 border border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
               <div className="flex items-center gap-3 mb-3">
                 <CheckCircle2 className="w-6 h-6 text-emerald-400" />
                 <div>
                   <h4 className="font-bold text-emerald-300 text-sm">DESTRUCTION CERTIFICATE ISSUED & VERIFIED</h4>
-                  <span className="text-[11px] text-emerald-400/80 font-mono">Certificate ID: {issueSuccess.certificate_id || 'DEMO'}</span>
+                  <span className="text-[11px] text-emerald-400/80 font-mono">Certificate ID: {issueSuccess.certificate_id || 'CERT-OK'}</span>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3 text-xs mt-3">
@@ -527,44 +569,71 @@ export const DestructionCertificatesPage: React.FC = () => {
               )}
             </div>
             <p className="text-xs text-slate-400 text-center">
-              {issueSuccess.message || 'Batch inscribed in Dead Batch Registry. All future scans will trigger re-entry alerts.'}
+              {issueSuccess.message || 'Batch permanently inscribed into Dead Batch Registry. Re-entry attempts will be flagged.'}
             </p>
             <button
-              onClick={() => { setShowIssueModal(false); setIssueSuccess(null); loadCertificates(); }}
+              onClick={() => { setShowIssueModal(false); setIssueSuccess(null); loadData(); }}
               className="w-full py-2 rounded-lg bg-emerald-500 text-slate-950 text-xs font-bold hover:bg-emerald-400 transition-colors"
             >
               Done — View Certificates
             </button>
           </div>
         ) : (
-          // Issue form
           <form onSubmit={handleIssueCertificate} className="space-y-4">
-            <div className="p-3 rounded-lg bg-amber-950/30 border border-amber-500/40 text-xs text-amber-300 flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+            <div className="p-3 rounded-lg bg-cyan-950/30 border border-cyan-500/40 text-xs text-cyan-300 flex items-start gap-2">
+              <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-cyan-400" />
               <span>
-                <strong>Phase 8 Precondition:</strong> Batch must be in <strong>DISPOSED</strong> state (Phase 7 complete).
-                Certificate creation will transition batch to <strong>DESTROYED</strong> and inscribe it in the Dead Batch Registry.
+                <strong>Facility Certification Rule:</strong> Select an eligible batch registered in the pharmaceutical ledger. Issuing this certificate cryptographically commits the SHA-256 hash and enrolls the batch into the <strong>Dead Batch Registry</strong>.
               </span>
             </div>
 
+            {issueError && (
+              <div className="p-3 rounded-lg bg-rose-950/40 border border-rose-500/50 text-xs text-rose-300 flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
+                <span>{issueError}</span>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
-                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-1.5">Batch ID / Batch Number *</label>
-                <input
-                  required
-                  value={issueBatchId}
-                  onChange={e => setIssueBatchId(e.target.value)}
-                  placeholder="e.g. B1001 or batch UUID"
-                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white font-mono placeholder-slate-500 focus:outline-none focus:border-cyan-500"
-                />
+                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-1.5">
+                  Select Registered Batch *
+                </label>
+                {availableBatches.length > 0 ? (
+                  <select
+                    value={issueBatchId}
+                    onChange={e => handleBatchSelect(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white font-mono focus:outline-none focus:border-cyan-500 mb-2"
+                  >
+                    <option value="">-- Choose from Registered Batches --</option>
+                    {availableBatches.map(b => (
+                      <option key={b.id} value={b.batch_number}>
+                        {b.batch_number} — {b.medicine_id || 'Medicine'} ({b.current_quantity?.toLocaleString() || b.initial_quantity?.toLocaleString()} units) [{b.status}]
+                      </option>
+                    ))}
+                  </select>
+                ) : null}
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-slate-400 font-mono">Or enter Batch ID / Number:</span>
+                  <input
+                    required
+                    value={issueBatchId}
+                    onChange={e => setIssueBatchId(e.target.value)}
+                    placeholder="e.g. B1001"
+                    className="flex-1 px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white font-mono placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
               </div>
 
               <div className="col-span-2">
-                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-1.5">Disposal Record ID (optional — for quantity verification)</label>
+                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-1.5">
+                  Disposal Inbound Record ID (Optional)
+                </label>
                 <input
                   value={issueDisposalId}
                   onChange={e => setIssueDisposalId(e.target.value)}
-                  placeholder="Phase 7 disposal record ID (auto-resolved if blank)"
+                  placeholder="Facility inbound disposal reference (auto-resolved if blank)"
                   className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white font-mono placeholder-slate-500 focus:outline-none focus:border-cyan-500"
                 />
               </div>
@@ -606,64 +675,54 @@ export const DestructionCertificatesPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-1.5">Witness Name *</label>
+                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-1.5">Witness Official Name *</label>
                 <input
                   required
                   value={issueWitnessName}
                   onChange={e => setIssueWitnessName(e.target.value)}
-                  placeholder="Full name of regulatory witness"
-                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                  placeholder="e.g. Inspector Rajiv Verma (State FDA)"
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-cyan-500"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-1.5">Witness Badge ID *</label>
+                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-1.5">Witness Badge / License ID *</label>
                 <input
                   required
                   value={issueWitnessBadge}
                   onChange={e => setIssueWitnessBadge(e.target.value)}
                   placeholder="e.g. INSP-MH-9942"
-                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white font-mono placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white font-mono focus:outline-none focus:border-cyan-500"
                 />
               </div>
 
               <div className="col-span-2">
-                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-1.5">Facility Notes</label>
+                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-1.5">Facility Notes & Compliance Remarks</label>
                 <textarea
+                  rows={2}
                   value={issueNotes}
                   onChange={e => setIssueNotes(e.target.value)}
-                  rows={2}
-                  placeholder="Operational notes — destruction protocol, SOP reference..."
-                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 resize-none"
+                  placeholder="Biohazard handling protocol, verification remarks..."
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-cyan-500"
                 />
               </div>
             </div>
 
-            {issueError && (
-              <div className="p-3 rounded-lg bg-rose-950/40 border border-rose-500/40 text-xs text-rose-300 flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                {issueError}
-              </div>
-            )}
-
-            <div className="flex gap-3 pt-2">
+            <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
               <button
                 type="button"
-                onClick={() => setShowIssueModal(false)}
-                className="flex-1 py-2 rounded-lg border border-slate-700 text-xs font-semibold text-slate-300 hover:text-white hover:border-slate-500 transition-colors"
+                onClick={() => { setShowIssueModal(false); setIssueError(null); }}
+                className="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={issuingCert}
-                className="flex-1 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-cyan-600 text-white text-xs font-bold hover:brightness-110 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                className="px-5 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-cyan-600 text-white text-xs font-bold hover:brightness-110 transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.3)] disabled:opacity-60"
               >
-                {issuingCert ? (
-                  <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating SHA-256 Certificate...</>
-                ) : (
-                  <><Lock className="w-3.5 h-3.5" /> Issue & Verify Certificate → DESTROYED</>
-                )}
+                {issuingCert ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Flame className="w-3.5 h-3.5" />}
+                <span>Issue & Register Dead Batch</span>
               </button>
             </div>
           </form>

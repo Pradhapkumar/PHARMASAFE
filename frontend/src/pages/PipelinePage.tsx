@@ -1088,7 +1088,7 @@ export const PipelinePage: React.FC = () => {
                 )}
               </div>
               <span className="text-xs font-mono text-cyan-400">
-                Phase {activeStep} of 10 Active
+                Stage {activeStep} of 10 Active
               </span>
             </div>
             <div className="h-2 bg-slate-700/60 rounded-full overflow-hidden flex">

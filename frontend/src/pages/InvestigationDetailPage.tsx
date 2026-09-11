@@ -258,7 +258,7 @@ export default function InvestigationDetailPage() {
               </span>
               {dossier.case_id === 'INV-2026-B1001' && (
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
-                  FLAGSHIP 10-PHASE MASTER DOSSIER
+                  MASTER FORENSIC CASE DOSSIER
                 </span>
               )}
             </div>
@@ -273,12 +273,6 @@ export default function InvestigationDetailPage() {
                 <span className="font-mono text-amber-400 font-semibold">{dossier.batch_id || 'B1001'}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-slate-500" />
-                <span>Investigator:</span>
-                <span className="text-slate-200 font-medium">{dossier.assigned_to_name || 'Vikram Malhotra'}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-slate-500" />
                 <span>Opened:</span>
                 <span className="text-slate-300">{new Date(dossier.created_at).toLocaleDateString()}</span>
               </div>

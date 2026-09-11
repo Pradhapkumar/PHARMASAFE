@@ -82,17 +82,17 @@ export const DisposalManagementPage: React.FC = () => {
         }
       />
 
-      {/* Phase 8 Handoff Banner if Disposal Completed */}
+      {/* Destruction Certification Handoff Banner if Disposal Completed */}
       {lastDisposedBatch && (
         <div className="p-4 rounded-xl bg-purple-950/40 border border-purple-800/60 text-purple-200 text-xs flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
             <div>
               <strong className="text-white block font-mono text-sm">
-                Phase 7 Operational Disposal Completed for {lastDisposedBatch} — Status: DISPOSED
+                Facility Disposal Logged for {lastDisposedBatch} — Status: DISPOSED
               </strong>
               <span className="text-purple-300">
-                Operational disposal logged. Batch stock ready for Phase 8 Destruction Certification & Dead Batch Registry inscription.
+                Inbound disposal registered. Stock ready for Certified Destruction Record & Dead Batch Registry inscription.
               </span>
             </div>
           </div>
@@ -100,7 +100,7 @@ export const DisposalManagementPage: React.FC = () => {
             to="/certificates"
             className="px-3.5 py-2 rounded-lg bg-purple-900 border border-purple-700 text-white font-bold hover:bg-purple-800 transition-colors shrink-0 flex items-center gap-1.5"
           >
-            <span>Proceed to Phase 8 Certification</span>
+            <span>Proceed to Destruction Certification</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -264,13 +264,13 @@ export const DisposalManagementPage: React.FC = () => {
         isOpen={showDisposalModal}
         onClose={() => setShowDisposalModal(false)}
         title="Record Operational Pharmaceutical Disposal"
-        subtitle="Executes operational disposal processing and transitions batch status to DISPOSED (Phase 7 End State)"
+        subtitle="Executes operational disposal processing and transitions batch status to DISPOSED"
       >
         <form onSubmit={handleExecuteDisposal} className="space-y-4 text-xs">
           <div className="p-3 rounded-lg bg-blue-950/30 border border-blue-800/50 text-blue-300 text-xs leading-relaxed flex items-start gap-2">
             <Sparkles className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
             <div>
-              <strong>Phase 7 Boundary Rule:</strong> Operational disposal marks the physical processing of return stock as <strong>DISPOSED</strong>. Final destruction certification and Dead Batch Registry inscription occur in <strong>Phase 8</strong>.
+              <strong>Disposal Handling Protocol:</strong> Operational disposal logs physical intake and biohazard neutralization. Final destruction certification permanently inscribes the batch in the <strong>Dead Batch Registry</strong>.
             </div>
           </div>
 
@@ -354,7 +354,7 @@ export const DisposalManagementPage: React.FC = () => {
               type="submit"
               className="px-5 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-rose-600 text-white font-bold hover:brightness-110 transition-all shadow-lg"
             >
-              Complete Phase 7 Disposal (DISPOSED)
+              Confirm Facility Disposal (DISPOSED)
             </button>
           </div>
         </form>

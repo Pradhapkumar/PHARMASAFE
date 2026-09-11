@@ -73,7 +73,7 @@ export const Topbar: React.FC<TopbarProps> = ({
         {/* Environment Indicator */}
         <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] font-mono text-slate-400">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>PHASE 2 UX VERIFIED</span>
+          <span>CLOSED-LOOP SAFETY ACTIVE</span>
         </div>
 
         {/* Persona Selector Dropdown */}

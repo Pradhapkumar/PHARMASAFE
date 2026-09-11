@@ -98,7 +98,7 @@ export default function InvestigationsPage() {
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold text-white tracking-tight">Forensic Investigations Workspace</h1>
                 <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                  Phase 11
+                  Security Intelligence
                 </span>
               </div>
               <p className="text-sm text-slate-400 mt-0.5">

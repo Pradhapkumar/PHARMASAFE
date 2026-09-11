@@ -82,7 +82,7 @@ export default function AnalyticsPage() {
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold text-white tracking-tight">Executive & Forensic Analytics</h1>
               <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                Phase 11
+                Sovereign Intelligence
               </span>
             </div>
             <p className="text-sm text-slate-400 mt-0.5">
