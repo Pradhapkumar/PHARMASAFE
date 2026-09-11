@@ -15,7 +15,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailCtrl = TextEditingController(text: 'pharmacy@pharmasafe.demo');
-  final _passCtrl = TextEditingController(text: 'PharmaSafe2026!');
+  final _passCtrl = TextEditingController(text: 'password123');
   final _hostCtrl = TextEditingController(text: AppConstants.activeHost);
   bool _showHostConfig = false;
   bool _obscurePass = true;
@@ -40,7 +40,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _fillPreset(String email, String role) {
     _emailCtrl.text = email;
-    _passCtrl.text = 'PharmaSafe2026!';
+    _passCtrl.text = 'password123';
     setState(() {});
   }
 
