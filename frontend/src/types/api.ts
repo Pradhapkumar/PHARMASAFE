@@ -600,6 +600,20 @@ export interface DispatchRecallDirectivePayload {
   auto_lock_pos?: boolean;
 }
 
+export interface DispatchRecallDirectiveResponse {
+  directive_id?: string;
+  batch_id: string;
+  status: string;
+  pos_locked: boolean;
+  message?: string;
+  timestamp?: string;
+  recipient?: string;
+  affected_units?: number;
+  pharmacy_name?: string;
+  quarantined_quantity?: number;
+  return_manifest_tracking_code?: string;
+}
+
 export interface CrossTierBatchTelemetry {
   batch_id: string;
   batch_number: string;

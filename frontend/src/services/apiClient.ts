@@ -307,25 +307,6 @@ class ApiClient {
     });
   }
 
-  // Authoritative Sales & Point-of-Sale Dispensing
-  async verifySaleEligibility(batchIdentifier: string, quantity: number = 1, customerRef?: string): Promise<any> {
-    return this.request<any>('/sales/verify', {
-      method: 'POST',
-      body: JSON.stringify({ batch_identifier: batchIdentifier, quantity, customer_reference: customerRef }),
-    });
-  }
-
-  async recordSale(payload: { batch_id?: string; batch_number?: string; batch_identifier?: string; quantity: number; customer_reference?: string }): Promise<any> {
-    return this.request<any>('/sales', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-  }
-
-  async getSalesHistory(limit: number = 50): Promise<any[]> {
-    return this.request<any[]>(`/sales?limit=${limit}`);
-  }
-
   // Returns & Reverse Logistics
   async getReturnRequests(): Promise<ReturnRequest[]> {
     return this.request<ReturnRequest[]>('/returns');
@@ -549,6 +530,13 @@ class ApiClient {
         quantity,
         customer_reference: customerRef,
       }),
+    });
+  }
+
+  async recordSale(payload: { batch_id?: string; batch_number?: string; batch_identifier?: string; quantity: number; customer_reference?: string }): Promise<any> {
+    return this.request<any>('/sales', {
+      method: 'POST',
+      body: JSON.stringify(payload),
     });
   }
 
