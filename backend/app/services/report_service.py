@@ -61,7 +61,7 @@ class ReportService:
         timeline = []
         timeline.append({
             "timestamp": batch.created_at.isoformat() if batch.created_at else "2026-04-01T10:00:00Z",
-            "phase": "PHASE 4: MANUFACTURING",
+            "phase": "MANUFACTURING & SERIALIZATION",
             "event": "Batch Manufactured & Digital Passport Inscribed",
             "details": f"Produced {batch.initial_quantity} units by {batch.manufacturer_org.name if batch.manufacturer_org else 'Manufacturer'}"
         })
@@ -70,7 +70,7 @@ class ReportService:
             for ct in custody_transfers:
                 timeline.append({
                     "timestamp": ct.timestamp.isoformat() if ct.timestamp else "2026-05-01T12:00:00Z",
-                    "phase": "PHASE 5: CUSTODY DISPATCH",
+                    "phase": "FORWARD SUPPLY CHAIN CUSTODY",
                     "event": f"Custody Transfer ({ct.id})",
                     "details": f"Transferred {ct.transferred_quantity} units from {ct.from_organization.name if ct.from_organization else 'Origin'} to {ct.to_organization.name if ct.to_organization else 'Destination'}. Confirmed: {ct.is_confirmed}"
                 })
@@ -80,7 +80,7 @@ class ReportService:
                 has_disc = (r.received_quantity is not None and r.received_quantity != r.quantity)
                 timeline.append({
                     "timestamp": r.created_at.isoformat() if r.created_at else "2026-06-15T14:30:00Z",
-                    "phase": "PHASE 7: REVERSE LOGISTICS",
+                    "phase": "REVERSE LOGISTICS & DEFECT QUARANTINE",
                     "event": f"Return Initiated ({r.id})",
                     "details": f"Reason: {r.reason}. Returned {r.quantity} units. Discrepancy: {has_disc}"
                 })
@@ -89,7 +89,7 @@ class ReportService:
             for d in disposals:
                 timeline.append({
                     "timestamp": d.timestamp.isoformat() if d.timestamp else "2026-06-20T11:00:00Z",
-                    "phase": "PHASE 7: OPERATIONAL DISPOSAL",
+                    "phase": "FACILITY DISPOSAL INTAKE",
                     "event": f"Disposal Processed ({d.id})",
                     "details": f"Method: {d.disposal_method}. Disposed: {d.disposed_quantity} units. Scale Weight: {d.scale_weight_kg or 'N/A'}"
                 })
@@ -97,14 +97,14 @@ class ReportService:
         if destruction:
             timeline.append({
                 "timestamp": destruction.timestamp.isoformat() if destruction.timestamp else "2026-06-21T09:00:00Z",
-                "phase": "PHASE 8: DESTRUCTION CERTIFICATION",
+                "phase": "CERTIFIED DESTRUCTION ATTESTATION",
                 "event": f"Cryptographic Destruction Certificate ({destruction.certificate_id})",
                 "details": f"SHA-256 Hash: {destruction.certificate_sha256_hash}. Status: {destruction.verification_status}"
             })
         elif batch.batch_number == "B1001":
             timeline.append({
                 "timestamp": "2026-06-21T09:00:00Z",
-                "phase": "PHASE 8: DESTRUCTION CERTIFICATION",
+                "phase": "CERTIFIED DESTRUCTION ATTESTATION",
                 "event": "Cryptographic Destruction Certificate (DC-2026-B1001)",
                 "details": "SHA-256 Hash: 7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069. Status: VERIFIED"
             })
@@ -112,14 +112,14 @@ class ReportService:
         if dead_entry:
             timeline.append({
                 "timestamp": dead_entry.timestamp.isoformat() if dead_entry.timestamp else "2026-06-21T09:05:00Z",
-                "phase": "PHASE 8: DEAD BATCH REGISTRY",
+                "phase": "DEAD BATCH REGISTRY INSCRIPTION",
                 "event": "Permanently Inscribed in Sovereign Dead Batch Registry",
                 "details": f"Reason: {dead_entry.reason}. Inviolable sale-block enforced."
             })
         elif batch.batch_number == "B1001":
             timeline.append({
                 "timestamp": "2026-06-21T09:05:00Z",
-                "phase": "PHASE 8: DEAD BATCH REGISTRY",
+                "phase": "DEAD BATCH REGISTRY INSCRIPTION",
                 "event": "Permanently Inscribed in Sovereign Dead Batch Registry",
                 "details": "Reason: Quarantined packaging diversion. Inviolable sale-block enforced."
             })

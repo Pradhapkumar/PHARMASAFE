@@ -129,7 +129,7 @@ export const DisposalManagementPage: React.FC = () => {
         <div className="glass-panel p-4 rounded-xl border border-slate-800">
           <span className="text-slate-400 text-xs font-mono uppercase block mb-1">Disposed Consignments</span>
           <h3 className="text-2xl font-bold text-purple-300 font-mono">890</h3>
-          <span className="text-[11px] text-slate-500">Phase 7 Disposed State</span>
+          <span className="text-[11px] text-slate-500">Inbound Quarantine Complete</span>
         </div>
       </div>
 

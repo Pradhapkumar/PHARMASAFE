@@ -144,9 +144,9 @@ def get_investigation_dossier(
     custody_chain = []
 
     if target_batch:
-        # Phase 4: Manufacturing
+        # Manufacturing
         timeline.append({
-            "phase": "PHASE 4: MANUFACTURING",
+            "phase": "MANUFACTURING & SERIALIZATION",
             "title": f"Batch {target_batch.batch_number} Manufactured",
             "timestamp": target_batch.created_at.isoformat() if target_batch.created_at else "2026-04-01T10:00:00Z",
             "actor": target_batch.manufacturer_org.name if target_batch.manufacturer_org else "Pfizer Global Alpha",
@@ -162,13 +162,13 @@ def get_investigation_dossier(
             "evidence_count": 2
         })
 
-        # Phase 5: Distribution & Custody Transfers
+        # Distribution & Custody Transfers
         transfers = db.query(CustodyTransfer).filter(CustodyTransfer.batch_id == target_batch.id).all()
         for t in transfers:
             from_name = t.from_organization.name if t.from_organization else "Origin"
             to_name = t.to_organization.name if t.to_organization else "Destination"
             timeline.append({
-                "phase": "PHASE 5: FORWARD SUPPLY CHAIN",
+                "phase": "FORWARD SUPPLY CHAIN CUSTODY",
                 "title": f"Custody Transfer: {from_name} → {to_name}",
                 "timestamp": t.timestamp.isoformat() if t.timestamp else "2026-04-10T14:00:00Z",
                 "actor": to_name,
@@ -184,12 +184,12 @@ def get_investigation_dossier(
                 "evidence_count": 1
             })
 
-        # Phase 7: Reverse Logistics Returns
+        # Reverse Logistics Returns
         returns = db.query(ReturnRequest).filter(ReturnRequest.batch_id == target_batch.id).all()
         for r in returns:
             has_disc = (r.received_quantity is not None and r.received_quantity != r.quantity)
             timeline.append({
-                "phase": "PHASE 7: REVERSE LOGISTICS",
+                "phase": "REVERSE LOGISTICS & DEFECT QUARANTINE",
                 "title": f"Reverse Return Initiated ({r.id})",
                 "timestamp": r.created_at.isoformat() if r.created_at else "2026-06-15T16:00:00Z",
                 "actor": r.initiator_org.name if r.initiator_org else "Pharmacy",
@@ -197,11 +197,11 @@ def get_investigation_dossier(
                 "status": r.status.value if hasattr(r.status, "value") else str(r.status)
             })
 
-        # Phase 7: Operational Disposal
+        # Operational Disposal
         disposals = db.query(DisposalRecord).filter(DisposalRecord.batch_id == target_batch.id).all()
         for d in disposals:
             timeline.append({
-                "phase": "PHASE 7: OPERATIONAL DISPOSAL",
+                "phase": "FACILITY DISPOSAL INTAKE",
                 "title": f"Disposal Processed at Facility ({d.facility_org.name if d.facility_org else 'Disposal Plant'})",
                 "timestamp": d.timestamp.isoformat() if d.timestamp else "2026-06-20T11:00:00Z",
                 "actor": d.facility_org.name if d.facility_org else "Disposal Plant",
@@ -219,7 +219,7 @@ def get_investigation_dossier(
 
         if not returns and not disposals and (case_obj.case_id == "INV-2026-B1001" or target_batch.batch_number == "B1001"):
             timeline.append({
-                "phase": "PHASE 7: REVERSE LOGISTICS",
+                "phase": "REVERSE LOGISTICS & DEFECT QUARANTINE",
                 "title": "Suspect Defect Return Initiated",
                 "timestamp": "2026-06-15T16:00:00Z",
                 "actor": "Metro Pharmacy Bandra",
@@ -227,11 +227,11 @@ def get_investigation_dossier(
                 "status": "QUARANTINED"
             })
 
-        # Phase 8: Destruction Certification & Dead Batch
+        # Destruction Certification & Dead Batch
         destruction = db.query(DestructionRecord).filter(DestructionRecord.batch_id == target_batch.id).first()
         if destruction:
             timeline.append({
-                "phase": "PHASE 8: DESTRUCTION CERTIFICATION",
+                "phase": "CERTIFIED DESTRUCTION ATTESTATION",
                 "title": f"Destruction Certified ({destruction.certificate_id})",
                 "timestamp": destruction.timestamp.isoformat() if destruction.timestamp else "2026-06-21T09:00:00Z",
                 "actor": destruction.witness_name,
@@ -248,7 +248,7 @@ def get_investigation_dossier(
             })
         elif case_obj.case_id == "INV-2026-B1001" or target_batch.batch_number == "B1001":
             timeline.append({
-                "phase": "PHASE 8: DESTRUCTION CERTIFICATION",
+                "phase": "CERTIFIED DESTRUCTION ATTESTATION",
                 "title": "Certified Destruction Completed (DC-2026-B1001)",
                 "timestamp": "2026-06-21T09:00:00Z",
                 "actor": "Inspector Rajiv Verma",

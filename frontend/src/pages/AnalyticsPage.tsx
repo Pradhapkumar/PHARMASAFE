@@ -497,8 +497,8 @@ export default function AnalyticsPage() {
               <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-2xl">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
                   <div>
-                    <h3 className="text-base font-bold text-white">8-Point Closed-Loop Compliance Index</h3>
-                    <p className="text-xs text-slate-400 mt-0.5">Continuous automated regulatory health score across all 11 phases</p>
+                    <h3 className="text-base font-bold text-white">Closed-Loop Compliance Index</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Continuous automated regulatory health score across all custody checkpoints</p>
                   </div>
                   <div className="text-right">
                     <span className="text-3xl font-black text-emerald-400 font-mono">{compliance.compliance_index}%</span>

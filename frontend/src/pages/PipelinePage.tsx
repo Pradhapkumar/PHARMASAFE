@@ -484,7 +484,7 @@ const StepCard: React.FC<{
           <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400 flex items-center justify-between">
             <span className="flex items-center gap-1.5 font-bold">
               <Activity className="w-3 h-3 text-cyan-400" />
-              Autonomous Tasks Executing in Phase:
+              Autonomous Tasks Executing in Stage:
             </span>
             <span>
               {step.status === 'completed'

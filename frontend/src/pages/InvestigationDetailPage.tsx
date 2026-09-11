@@ -183,7 +183,7 @@ export default function InvestigationDetailPage() {
       <div className="p-12 text-center text-slate-400 max-w-5xl mx-auto">
         <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-amber-400" />
         <p className="font-medium text-slate-300">Assembling 360° Forensic Case Dossier...</p>
-        <p className="text-xs text-slate-500 mt-1">Collating 10 supply-chain phases and SHA-256 evidence vaults</p>
+        <p className="text-xs text-slate-500 mt-1">Collating supply chain custody checkpoints and SHA-256 evidence vaults</p>
       </div>
     );
   }
@@ -322,12 +322,12 @@ export default function InvestigationDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* LEFT COLUMN: 7 cols */}
         <div className="lg:col-span-7 space-y-8">
-          {/* Section 1: 10-Phase Chronological Timeline */}
+          {/* Section 1: Chronological Supply Chain Timeline */}
           <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-6">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <Clock className="w-5 h-5 text-amber-400" />
-                <h2 className="text-base font-bold text-white">Chronological 10-Phase Event Timeline</h2>
+                <h2 className="text-base font-bold text-white">Chronological Supply Chain Event Timeline</h2>
               </div>
               <span className="text-xs text-slate-400">{dossier.timeline?.length || 0} Synchronized Events</span>
             </div>
