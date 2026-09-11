@@ -1,0 +1,65 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Node / Frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+
+# Flutter / Mobile
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+mobile/build/
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.pub/
+mobile/.pub-cache/
+
+# Android Studio / Gradle
+.gradle/
+local.properties
+**/android/.gradle/
+**/android/captures/
+**/android/gradleBuild/
+*.apk
+*.aab
+
+# Databases & local storage
+*.db
+*.sqlite3
+pharmasafe.db
+test_pharmasafe.db
+storage/uploads/*
+!storage/uploads/.gitkeep
+
+# Environment variables & secrets
+.env
+!.env.example
+
+# IDEs & Editors
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS files
+.DS_Store
+Thumbs.db
+*.log

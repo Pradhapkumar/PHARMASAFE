@@ -1,0 +1,3055 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PharmaSafe Intelligence API",
+    "description": "AI-Powered Pharmaceutical Reverse Chain & Medicine Safety Platform Backend Gateway",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Login",
+        "operationId": "login_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLogin"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Token"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Get Current User",
+        "operationId": "get_current_user_api_v1_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/register-organization": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Register Organization",
+        "operationId": "register_organization_api_v1_auth_register_organization_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/batches": {
+      "post": {
+        "tags": [
+          "Batches & Custody"
+        ],
+        "summary": "Create Batch",
+        "operationId": "create_batch_api_v1_batches_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Batches & Custody"
+        ],
+        "summary": "List Batches",
+        "operationId": "list_batches_api_v1_batches_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/BatchStatusEnum"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "medicine_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Medicine Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BatchResponse"
+                  },
+                  "title": "Response List Batches Api V1 Batches Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/batches/{batch_id_or_number}/passport": {
+      "get": {
+        "tags": [
+          "Batches & Custody"
+        ],
+        "summary": "Get Batch Passport",
+        "operationId": "get_batch_passport_api_v1_batches__batch_id_or_number__passport_get",
+        "parameters": [
+          {
+            "name": "batch_id_or_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Batch Id Or Number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchPassportResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/batches/{batch_id}/recall": {
+      "post": {
+        "tags": [
+          "Batches & Custody"
+        ],
+        "summary": "Recall Batch",
+        "operationId": "recall_batch_api_v1_batches__batch_id__recall_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Batch Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchRecallRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/batches/{batch_id}/custody-transfer": {
+      "post": {
+        "tags": [
+          "Batches & Custody"
+        ],
+        "summary": "Record Custody Transfer",
+        "operationId": "record_custody_transfer_api_v1_batches__batch_id__custody_transfer_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Batch Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustodyTransferCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustodyTransferResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/verify/scan": {
+      "post": {
+        "tags": [
+          "Verification & Scanning"
+        ],
+        "summary": "Scan Medicine Code",
+        "operationId": "scan_medicine_code_api_v1_verify_scan_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerificationScanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationScanResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/returns": {
+      "post": {
+        "tags": [
+          "Reverse Logistics"
+        ],
+        "summary": "Create Return Request",
+        "operationId": "create_return_request_api_v1_returns_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReturnRequestCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReturnRequestResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Reverse Logistics"
+        ],
+        "summary": "List Return Requests",
+        "operationId": "list_return_requests_api_v1_returns_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ReturnStatusEnum"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "batch_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Batch Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReturnRequestResponse"
+                  },
+                  "title": "Response List Return Requests Api V1 Returns Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/returns/{return_id}/status": {
+      "patch": {
+        "tags": [
+          "Reverse Logistics"
+        ],
+        "summary": "Update Return Status",
+        "operationId": "update_return_status_api_v1_returns__return_id__status_patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "return_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Return Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReturnStatusUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReturnRequestResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/destruction/records": {
+      "get": {
+        "tags": [
+          "Destruction Records"
+        ],
+        "summary": "List Destruction Records",
+        "operationId": "list_destruction_records_api_v1_destruction_records_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DestructionRecordResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Destruction Records Api V1 Destruction Records Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Destruction Records"
+        ],
+        "summary": "Certify Destruction",
+        "operationId": "certify_destruction_api_v1_destruction_records_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DestructionRecordCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DestructionRecordResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/dead-batches": {
+      "get": {
+        "tags": [
+          "Dead Batch Registry"
+        ],
+        "summary": "List Dead Batches",
+        "operationId": "list_dead_batches_api_v1_dead_batches_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeadBatchResponse"
+                  },
+                  "title": "Response List Dead Batches Api V1 Dead Batches Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dead-batches/alerts/re-entry-incidents": {
+      "get": {
+        "tags": [
+          "Dead Batch Registry"
+        ],
+        "summary": "List Reentry Incidents",
+        "operationId": "list_reentry_incidents_api_v1_dead_batches_alerts_re_entry_incidents_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VerificationScanResponse"
+                  },
+                  "title": "Response List Reentry Incidents Api V1 Dead Batches Alerts Re Entry Incidents Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dead-batches/{batch_number}": {
+      "get": {
+        "tags": [
+          "Dead Batch Registry"
+        ],
+        "summary": "Get Dead Batch By Number",
+        "operationId": "get_dead_batch_by_number_api_v1_dead_batches__batch_number__get",
+        "parameters": [
+          {
+            "name": "batch_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Batch Number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeadBatchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/intelligence/risk-score/{batch_id_or_number}": {
+      "get": {
+        "tags": [
+          "AI & Risk Intelligence"
+        ],
+        "summary": "Get Batch Risk Score",
+        "operationId": "get_batch_risk_score_api_v1_intelligence_risk_score__batch_id_or_number__get",
+        "parameters": [
+          {
+            "name": "batch_id_or_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Batch Id Or Number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskScoreResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/intelligence/online-surveillance": {
+      "post": {
+        "tags": [
+          "AI & Risk Intelligence"
+        ],
+        "summary": "Ingest Online Listing",
+        "operationId": "ingest_online_listing_api_v1_intelligence_online_surveillance_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OnlineSurveillanceCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnlineSurveillanceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "AI & Risk Intelligence"
+        ],
+        "summary": "List Online Surveillance",
+        "operationId": "list_online_surveillance_api_v1_intelligence_online_surveillance_get",
+        "parameters": [
+          {
+            "name": "high_risk_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "High Risk Only"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OnlineSurveillanceResponse"
+                  },
+                  "title": "Response List Online Surveillance Api V1 Intelligence Online Surveillance Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/intelligence/anomalies": {
+      "get": {
+        "tags": [
+          "AI & Risk Intelligence"
+        ],
+        "summary": "List Anomalies",
+        "operationId": "list_anomalies_api_v1_intelligence_anomalies_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnomalyResponse"
+                  },
+                  "title": "Response List Anomalies Api V1 Intelligence Anomalies Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/audit/logs": {
+      "get": {
+        "tags": [
+          "Audit & Compliance"
+        ],
+        "summary": "Get Audit Logs",
+        "operationId": "get_audit_logs_api_v1_audit_logs_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditLogResponse"
+                  },
+                  "title": "Response Get Audit Logs Api V1 Audit Logs Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/audit/compliance/summary": {
+      "get": {
+        "tags": [
+          "Audit & Compliance"
+        ],
+        "summary": "Get Compliance Summary",
+        "operationId": "get_compliance_summary_api_v1_audit_compliance_summary_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComplianceReportResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Health Check",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Root",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnomalyResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "batch_id": {
+            "type": "string",
+            "title": "Batch Id"
+          },
+          "anomaly_type": {
+            "type": "string",
+            "title": "Anomaly Type"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/RiskLevelEnum"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "raw_evidence": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Evidence"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "batch_id",
+          "anomaly_type",
+          "severity",
+          "description",
+          "timestamp"
+        ],
+        "title": "AnomalyResponse"
+      },
+      "AuditLogResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "entity_type": {
+            "type": "string",
+            "title": "Entity Type"
+          },
+          "entity_id": {
+            "type": "string",
+            "title": "Entity Id"
+          },
+          "actor_user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor User Id"
+          },
+          "actor_role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Role"
+          },
+          "actor_ip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Ip"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          },
+          "previous_state": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous State"
+          },
+          "new_state": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New State"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "action",
+          "entity_type",
+          "entity_id",
+          "timestamp"
+        ],
+        "title": "AuditLogResponse"
+      },
+      "BatchCreate": {
+        "properties": {
+          "batch_number": {
+            "type": "string",
+            "title": "Batch Number",
+            "example": "AMX-2026-9901"
+          },
+          "gtin_barcode": {
+            "type": "string",
+            "title": "Gtin Barcode",
+            "example": "08901234567890"
+          },
+          "medicine_id": {
+            "type": "string",
+            "title": "Medicine Id"
+          },
+          "mfg_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Mfg Date"
+          },
+          "expiry_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Expiry Date"
+          },
+          "initial_quantity": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Initial Quantity"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/UnitEnum",
+            "default": "BOX"
+          },
+          "qr_payload": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qr Payload"
+          }
+        },
+        "type": "object",
+        "required": [
+          "batch_number",
+          "gtin_barcode",
+          "medicine_id",
+          "mfg_date",
+          "expiry_date",
+          "initial_quantity"
+        ],
+        "title": "BatchCreate"
+      },
+      "BatchPassportResponse": {
+        "properties": {
+          "batch_id": {
+            "type": "string",
+            "title": "Batch Id"
+          },
+          "batch_number": {
+            "type": "string",
+            "title": "Batch Number"
+          },
+          "gtin_barcode": {
+            "type": "string",
+            "title": "Gtin Barcode"
+          },
+          "status": {
+            "$ref": "#/components/schemas/BatchStatusEnum"
+          },
+          "medicine": {
+            "$ref": "#/components/schemas/MedicineResponse"
+          },
+          "manufacturer_name": {
+            "type": "string",
+            "title": "Manufacturer Name"
+          },
+          "mfg_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Mfg Date"
+          },
+          "expiry_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Expiry Date"
+          },
+          "initial_quantity": {
+            "type": "integer",
+            "title": "Initial Quantity"
+          },
+          "current_quantity": {
+            "type": "integer",
+            "title": "Current Quantity"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/UnitEnum"
+          },
+          "current_custodian_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Custodian Name"
+          },
+          "is_recalled": {
+            "type": "boolean",
+            "title": "Is Recalled"
+          },
+          "recall_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recall Reason"
+          },
+          "is_dead_batch": {
+            "type": "boolean",
+            "title": "Is Dead Batch",
+            "default": false
+          },
+          "destruction_cert_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Destruction Cert Hash"
+          },
+          "custody_history": {
+            "items": {
+              "$ref": "#/components/schemas/CustodyTransferResponse"
+            },
+            "type": "array",
+            "title": "Custody History",
+            "default": []
+          },
+          "latest_risk_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Risk Score"
+          },
+          "risk_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Risk Level"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "batch_id",
+          "batch_number",
+          "gtin_barcode",
+          "status",
+          "medicine",
+          "manufacturer_name",
+          "mfg_date",
+          "expiry_date",
+          "initial_quantity",
+          "current_quantity",
+          "unit",
+          "is_recalled",
+          "created_at"
+        ],
+        "title": "BatchPassportResponse"
+      },
+      "BatchRecallRequest": {
+        "properties": {
+          "recall_reason": {
+            "type": "string",
+            "title": "Recall Reason"
+          },
+          "action_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Action Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recall_reason"
+        ],
+        "title": "BatchRecallRequest"
+      },
+      "BatchResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "batch_number": {
+            "type": "string",
+            "title": "Batch Number"
+          },
+          "gtin_barcode": {
+            "type": "string",
+            "title": "Gtin Barcode"
+          },
+          "medicine_id": {
+            "type": "string",
+            "title": "Medicine Id"
+          },
+          "manufacturer_id": {
+            "type": "string",
+            "title": "Manufacturer Id"
+          },
+          "mfg_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Mfg Date"
+          },
+          "expiry_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Expiry Date"
+          },
+          "initial_quantity": {
+            "type": "integer",
+            "title": "Initial Quantity"
+          },
+          "current_quantity": {
+            "type": "integer",
+            "title": "Current Quantity"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/UnitEnum"
+          },
+          "status": {
+            "$ref": "#/components/schemas/BatchStatusEnum"
+          },
+          "current_custodian_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Custodian Id"
+          },
+          "is_recalled": {
+            "type": "boolean",
+            "title": "Is Recalled"
+          },
+          "recall_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recall Reason"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "batch_number",
+          "gtin_barcode",
+          "medicine_id",
+          "manufacturer_id",
+          "mfg_date",
+          "expiry_date",
+          "initial_quantity",
+          "current_quantity",
+          "unit",
+          "status",
+          "is_recalled",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "BatchResponse"
+      },
+      "BatchStatusEnum": {
+        "type": "string",
+        "enum": [
+          "MANUFACTURED",
+          "IN_DISTRIBUTION",
+          "AT_PHARMACY",
+          "DISPENSED",
+          "EXPIRED",
+          "RECALLED",
+          "FLAGGED_SUSPICIOUS",
+          "RETURN_INITIATED",
+          "RETURN_IN_TRANSIT",
+          "RECEIVED_AT_DISPOSAL",
+          "DESTROYED",
+          "DEAD_BATCH"
+        ],
+        "title": "BatchStatusEnum"
+      },
+      "ComplianceReportResponse": {
+        "properties": {
+          "total_active_batches": {
+            "type": "integer",
+            "title": "Total Active Batches"
+          },
+          "total_expired_batches": {
+            "type": "integer",
+            "title": "Total Expired Batches"
+          },
+          "total_recalled_batches": {
+            "type": "integer",
+            "title": "Total Recalled Batches"
+          },
+          "total_returns_in_transit": {
+            "type": "integer",
+            "title": "Total Returns In Transit"
+          },
+          "total_destroyed_dead_batches": {
+            "type": "integer",
+            "title": "Total Destroyed Dead Batches"
+          },
+          "total_reentry_violations_prevented": {
+            "type": "integer",
+            "title": "Total Reentry Violations Prevented"
+          },
+          "overall_system_integrity_score": {
+            "type": "number",
+            "title": "Overall System Integrity Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_active_batches",
+          "total_expired_batches",
+          "total_recalled_batches",
+          "total_returns_in_transit",
+          "total_destroyed_dead_batches",
+          "total_reentry_violations_prevented",
+          "overall_system_integrity_score"
+        ],
+        "title": "ComplianceReportResponse"
+      },
+      "CustodyTransferCreate": {
+        "properties": {
+          "batch_id": {
+            "type": "string",
+            "title": "Batch Id"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/TransferStageEnum"
+          },
+          "to_organization_id": {
+            "type": "string",
+            "title": "To Organization Id"
+          },
+          "transferred_quantity": {
+            "type": "integer",
+            "title": "Transferred Quantity"
+          },
+          "verified_quantity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified Quantity"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "location_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Name"
+          },
+          "digital_signature": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Digital Signature"
+          }
+        },
+        "type": "object",
+        "required": [
+          "batch_id",
+          "stage",
+          "to_organization_id",
+          "transferred_quantity"
+        ],
+        "title": "CustodyTransferCreate"
+      },
+      "CustodyTransferResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "batch_id": {
+            "type": "string",
+            "title": "Batch Id"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/TransferStageEnum"
+          },
+          "from_organization_id": {
+            "type": "string",
+            "title": "From Organization Id"
+          },
+          "to_organization_id": {
+            "type": "string",
+            "title": "To Organization Id"
+          },
+          "transferred_quantity": {
+            "type": "integer",
+            "title": "Transferred Quantity"
+          },
+          "verified_quantity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified Quantity"
+          },
+          "has_discrepancy": {
+            "type": "boolean",
+            "title": "Has Discrepancy"
+          },
+          "discrepancy_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discrepancy Notes"
+          },
+          "location_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Name"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "batch_id",
+          "stage",
+          "from_organization_id",
+          "to_organization_id",
+          "transferred_quantity",
+          "has_discrepancy",
+          "timestamp"
+        ],
+        "title": "CustodyTransferResponse"
+      },
+      "DeadBatchResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "batch_id": {
+            "type": "string",
+            "title": "Batch Id"
+          },
+          "batch_number": {
+            "type": "string",
+            "title": "Batch Number"
+          },
+          "gtin_barcode": {
+            "type": "string",
+            "title": "Gtin Barcode"
+          },
+          "destruction_record_id": {
+            "type": "string",
+            "title": "Destruction Record Id"
+          },
+          "destruction_cert_hash": {
+            "type": "string",
+            "title": "Destruction Cert Hash"
+          },
+          "manufacturer_name": {
+            "type": "string",
+            "title": "Manufacturer Name"
+          },
+          "quantity_destroyed": {
+            "type": "integer",
+            "title": "Quantity Destroyed"
+          },
+          "destroyed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Destroyed At"
+          },
+          "blacklisted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Blacklisted At"
+          },
+          "reentry_attempts_count": {
+            "type": "integer",
+            "title": "Reentry Attempts Count"
+          },
+          "last_reentry_detected_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Reentry Detected At"
+          },
+          "is_actively_monitored": {
+            "type": "boolean",
+            "title": "Is Actively Monitored"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "batch_id",
+          "batch_number",
+          "gtin_barcode",
+          "destruction_record_id",
+          "destruction_cert_hash",
+          "manufacturer_name",
+          "quantity_destroyed",
+          "destroyed_at",
+          "blacklisted_at",
+          "reentry_attempts_count",
+          "is_actively_monitored"
+        ],
+        "title": "DeadBatchResponse"
+      },
+      "DestructionRecordCreate": {
+        "properties": {
+          "batch_id": {
+            "type": "string",
+            "title": "Batch Id"
+          },
+          "return_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Id"
+          },
+          "quantity_destroyed": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Quantity Destroyed"
+          },
+          "destruction_method": {
+            "type": "string",
+            "title": "Destruction Method",
+            "example": "HIGH_TEMP_INCINERATION_1200C"
+          },
+          "witness_name": {
+            "type": "string",
+            "title": "Witness Name"
+          },
+          "witness_badge_id": {
+            "type": "string",
+            "title": "Witness Badge Id"
+          },
+          "evidence_media_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Media Url"
+          },
+          "facility_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facility Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "batch_id",
+          "quantity_destroyed",
+          "destruction_method",
+          "witness_name",
+          "witness_badge_id"
+        ],
+        "title": "DestructionRecordCreate"
+      },
+      "DestructionRecordResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "batch_id": {
+            "type": "string",
+            "title": "Batch Id"
+          },
+          "return_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Id"
+          },
+          "facility_org_id": {
+            "type": "string",
+            "title": "Facility Org Id"
+          },
+          "quantity_destroyed": {
+            "type": "integer",
+            "title": "Quantity Destroyed"
+          },
+          "destruction_method": {
+            "type": "string",
+            "title": "Destruction Method"
+          },
+          "witness_name": {
+            "type": "string",
+            "title": "Witness Name"
+          },
+          "witness_badge_id": {
+            "type": "string",
+            "title": "Witness Badge Id"
+          },
+          "certificate_sha256_hash": {
+            "type": "string",
+            "title": "Certificate Sha256 Hash"
+          },
+          "certificate_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Certificate Url"
+          },
+          "evidence_media_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Media Url"
+          },
+          "facility_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facility Notes"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "batch_id",
+          "facility_org_id",
+          "quantity_destroyed",
+          "destruction_method",
+          "witness_name",
+          "witness_badge_id",
+          "certificate_sha256_hash",
+          "timestamp"
+        ],
+        "title": "DestructionRecordResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "MedicineResponse": {
+        "properties": {
+          "brand_name": {
+            "type": "string",
+            "title": "Brand Name"
+          },
+          "generic_name": {
+            "type": "string",
+            "title": "Generic Name"
+          },
+          "composition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Composition"
+          },
+          "dosage_form": {
+            "type": "string",
+            "title": "Dosage Form"
+          },
+          "strength": {
+            "type": "string",
+            "title": "Strength"
+          },
+          "storage_temp_min": {
+            "type": "string",
+            "title": "Storage Temp Min",
+            "default": "15\u00b0C"
+          },
+          "storage_temp_max": {
+            "type": "string",
+            "title": "Storage Temp Max",
+            "default": "25\u00b0C"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "manufacturer_id": {
+            "type": "string",
+            "title": "Manufacturer Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "brand_name",
+          "generic_name",
+          "dosage_form",
+          "strength",
+          "id",
+          "manufacturer_id",
+          "created_at"
+        ],
+        "title": "MedicineResponse"
+      },
+      "OnlineSurveillanceCreate": {
+        "properties": {
+          "platform_name": {
+            "type": "string",
+            "title": "Platform Name"
+          },
+          "listing_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listing Url"
+          },
+          "seller_name": {
+            "type": "string",
+            "title": "Seller Name"
+          },
+          "seller_identifier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seller Identifier"
+          },
+          "medicine_brand_claimed": {
+            "type": "string",
+            "title": "Medicine Brand Claimed"
+          },
+          "extracted_batch_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extracted Batch Number"
+          },
+          "listed_price_inr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listed Price Inr"
+          },
+          "discount_percentage": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discount Percentage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "platform_name",
+          "seller_name",
+          "medicine_brand_claimed"
+        ],
+        "title": "OnlineSurveillanceCreate"
+      },
+      "OnlineSurveillanceResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "platform_name": {
+            "type": "string",
+            "title": "Platform Name"
+          },
+          "listing_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listing Url"
+          },
+          "seller_name": {
+            "type": "string",
+            "title": "Seller Name"
+          },
+          "medicine_brand_claimed": {
+            "type": "string",
+            "title": "Medicine Brand Claimed"
+          },
+          "extracted_batch_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extracted Batch Number"
+          },
+          "listed_price_inr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listed Price Inr"
+          },
+          "discount_percentage": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discount Percentage"
+          },
+          "is_dead_batch_match": {
+            "type": "boolean",
+            "title": "Is Dead Batch Match"
+          },
+          "risk_score": {
+            "type": "number",
+            "title": "Risk Score"
+          },
+          "risk_level": {
+            "$ref": "#/components/schemas/RiskLevelEnum"
+          },
+          "flagged_reasons": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flagged Reasons"
+          },
+          "detected_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Detected At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "platform_name",
+          "seller_name",
+          "medicine_brand_claimed",
+          "is_dead_batch_match",
+          "risk_score",
+          "risk_level",
+          "detected_at"
+        ],
+        "title": "OnlineSurveillanceResponse"
+      },
+      "OrganizationCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "role_type": {
+            "$ref": "#/components/schemas/RoleEnum"
+          },
+          "license_number": {
+            "type": "string",
+            "title": "License Number"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "country": {
+            "type": "string",
+            "title": "Country",
+            "default": "India"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "role_type",
+          "license_number"
+        ],
+        "title": "OrganizationCreate"
+      },
+      "OrganizationResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "role_type": {
+            "$ref": "#/components/schemas/RoleEnum"
+          },
+          "license_number": {
+            "type": "string",
+            "title": "License Number"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "country": {
+            "type": "string",
+            "title": "Country",
+            "default": "India"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "is_verified": {
+            "type": "boolean",
+            "title": "Is Verified"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "role_type",
+          "license_number",
+          "id",
+          "is_verified",
+          "created_at"
+        ],
+        "title": "OrganizationResponse"
+      },
+      "ReturnReasonEnum": {
+        "type": "string",
+        "enum": [
+          "EXPIRED",
+          "RECALLED",
+          "SUSPECT_COUNTERFEIT",
+          "DAMAGED_IN_TRANSIT",
+          "STORAGE_BREACH",
+          "CUSTOMER_RETURN"
+        ],
+        "title": "ReturnReasonEnum"
+      },
+      "ReturnRequestCreate": {
+        "properties": {
+          "batch_id": {
+            "type": "string",
+            "title": "Batch Id"
+          },
+          "destination_facility_id": {
+            "type": "string",
+            "title": "Destination Facility Id"
+          },
+          "quantity": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Quantity"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/ReturnReasonEnum"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "batch_id",
+          "destination_facility_id",
+          "quantity",
+          "reason"
+        ],
+        "title": "ReturnRequestCreate"
+      },
+      "ReturnRequestResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "batch_id": {
+            "type": "string",
+            "title": "Batch Id"
+          },
+          "initiator_org_id": {
+            "type": "string",
+            "title": "Initiator Org Id"
+          },
+          "destination_facility_id": {
+            "type": "string",
+            "title": "Destination Facility Id"
+          },
+          "quantity": {
+            "type": "integer",
+            "title": "Quantity"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/ReturnReasonEnum"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ReturnStatusEnum"
+          },
+          "tracking_code": {
+            "type": "string",
+            "title": "Tracking Code"
+          },
+          "manifest_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manifest Hash"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "batch_id",
+          "initiator_org_id",
+          "destination_facility_id",
+          "quantity",
+          "reason",
+          "status",
+          "tracking_code",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ReturnRequestResponse"
+      },
+      "ReturnStatusEnum": {
+        "type": "string",
+        "enum": [
+          "INITIATED",
+          "IN_TRANSIT",
+          "RECEIVED_AT_DISPOSAL",
+          "CANCELLED",
+          "COMPLETED_DESTROYED"
+        ],
+        "title": "ReturnStatusEnum"
+      },
+      "ReturnStatusUpdate": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ReturnStatusEnum"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "manifest_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manifest Hash"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ReturnStatusUpdate"
+      },
+      "RiskLevelEnum": {
+        "type": "string",
+        "enum": [
+          "LOW",
+          "MEDIUM",
+          "HIGH",
+          "CRITICAL"
+        ],
+        "title": "RiskLevelEnum"
+      },
+      "RiskScoreResponse": {
+        "properties": {
+          "batch_id": {
+            "type": "string",
+            "title": "Batch Id"
+          },
+          "composite_risk_score": {
+            "type": "number",
+            "title": "Composite Risk Score"
+          },
+          "risk_level": {
+            "$ref": "#/components/schemas/RiskLevelEnum"
+          },
+          "expiry_risk_score": {
+            "type": "number",
+            "title": "Expiry Risk Score"
+          },
+          "supply_chain_anomaly_score": {
+            "type": "number",
+            "title": "Supply Chain Anomaly Score"
+          },
+          "reentry_risk_score": {
+            "type": "number",
+            "title": "Reentry Risk Score"
+          },
+          "seller_reputation_score": {
+            "type": "number",
+            "title": "Seller Reputation Score"
+          },
+          "explanation_summary": {
+            "type": "string",
+            "title": "Explanation Summary"
+          },
+          "factor_breakdown": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Factor Breakdown"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "batch_id",
+          "composite_risk_score",
+          "risk_level",
+          "expiry_risk_score",
+          "supply_chain_anomaly_score",
+          "reentry_risk_score",
+          "seller_reputation_score",
+          "explanation_summary",
+          "timestamp"
+        ],
+        "title": "RiskScoreResponse"
+      },
+      "RoleEnum": {
+        "type": "string",
+        "enum": [
+          "ADMIN",
+          "MANUFACTURER",
+          "DISTRIBUTOR",
+          "PHARMACY",
+          "DISPOSAL_FACILITY",
+          "REGULATOR_AUDITOR"
+        ],
+        "title": "RoleEnum"
+      },
+      "Token": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "expires_in",
+          "user"
+        ],
+        "title": "Token"
+      },
+      "TransferStageEnum": {
+        "type": "string",
+        "enum": [
+          "MANUFACTURE_TO_DISTRIBUTOR",
+          "DISTRIBUTOR_TO_PHARMACY",
+          "PHARMACY_TO_REVERSE_CARRIER",
+          "REVERSE_CARRIER_TO_DISPOSAL",
+          "DIRECT_TO_DISPOSAL"
+        ],
+        "title": "TransferStageEnum"
+      },
+      "UnitEnum": {
+        "type": "string",
+        "enum": [
+          "TABLET_STRIP",
+          "BOTTLE",
+          "VIAL",
+          "BOX",
+          "AMPOULE"
+        ],
+        "title": "UnitEnum"
+      },
+      "UserLogin": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "UserLogin"
+      },
+      "UserResponse": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name"
+          },
+          "role": {
+            "$ref": "#/components/schemas/RoleEnum"
+          },
+          "organization_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organization Id"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "full_name",
+          "role",
+          "id",
+          "is_active",
+          "created_at"
+        ],
+        "title": "UserResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VerificationScanRequest": {
+        "properties": {
+          "scanned_code": {
+            "type": "string",
+            "title": "Scanned Code"
+          },
+          "code_type": {
+            "type": "string",
+            "title": "Code Type",
+            "default": "QR_CODE"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "device_info": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Info",
+            "default": "PharmaSafe Scanner v1.0"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scanned_code"
+        ],
+        "title": "VerificationScanRequest"
+      },
+      "VerificationScanResponse": {
+        "properties": {
+          "verification_status": {
+            "$ref": "#/components/schemas/VerificationStatusEnum"
+          },
+          "batch_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Number"
+          },
+          "brand_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand Name"
+          },
+          "generic_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generic Name"
+          },
+          "manufacturer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manufacturer Name"
+          },
+          "is_expired": {
+            "type": "boolean",
+            "title": "Is Expired",
+            "default": false
+          },
+          "is_recalled": {
+            "type": "boolean",
+            "title": "Is Recalled",
+            "default": false
+          },
+          "is_dead_batch_reentry": {
+            "type": "boolean",
+            "title": "Is Dead Batch Reentry",
+            "default": false
+          },
+          "warning_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warning Message"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          },
+          "scan_id": {
+            "type": "string",
+            "title": "Scan Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "verification_status",
+          "timestamp",
+          "scan_id"
+        ],
+        "title": "VerificationScanResponse"
+      },
+      "VerificationStatusEnum": {
+        "type": "string",
+        "enum": [
+          "AUTHENTIC",
+          "EXPIRED",
+          "RECALLED",
+          "FLAGGED_SUSPICIOUS",
+          "DEAD_BATCH_REENTRY_DETECTED",
+          "UNKNOWN_NOT_FOUND"
+        ],
+        "title": "VerificationStatusEnum"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

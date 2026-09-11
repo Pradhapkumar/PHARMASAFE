@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: pharmasafe-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pharmasafe
+      POSTGRES_PASSWORD: pharmasafe123
+      POSTGRES_DB: pharmasafe_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pharmasafe -d pharmasafe_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pharmasafe-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://pharmasafe:pharmasafe123@db:5432/pharmasafe_db
+      - SECRET_KEY=pharmasafe_super_secret_jwt_key_hackathon_demo_change_in_prod
+      - ENVIRONMENT=development
+      - DEBUG=True
+    volumes:
+      - ./backend:/app
+      - ./storage:/app/storage
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pharmasafe-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
