@@ -15,8 +15,11 @@ class ApiService {
   void _initDio() {
     _dio = Dio(BaseOptions(
       baseUrl: AppConstants.baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 15),
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 20),
+      followRedirects: true,
+      maxRedirects: 5,
+      validateStatus: (status) => status != null && status < 500,
       headers: {
         'Content-Type': 'application/json',
         if (_authToken != null) 'Authorization': 'Bearer $_authToken',
@@ -42,6 +45,10 @@ class ApiService {
       'email': email.trim(),
       'password': password,
     });
+    if (res.statusCode != 200 && res.statusCode != 201) {
+      final msg = res.data is Map ? (res.data['detail'] ?? res.data['error']?['message'] ?? 'Authentication failed') : 'Authentication failed (${res.statusCode})';
+      throw Exception(msg);
+    }
     final data = res.data as Map<String, dynamic>;
     if (data['access_token'] != null) {
       setAuthToken(data['access_token']);
