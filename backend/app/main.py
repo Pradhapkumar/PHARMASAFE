@@ -11,11 +11,19 @@ for _p in [_root_dir, _backend_dir, _app_dir]:
         sys.path.insert(0, _p)
 
 import logging
+from pathlib import Path
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
+
+# ── Locate frontend dist folder (works both locally and on Render) ──
+# main.py is at: <root>/backend/app/main.py
+# dist is at:    <root>/frontend/dist
+_ROOT_DIR = Path(__file__).resolve().parent.parent.parent
+FRONTEND_DIST = _ROOT_DIR / "frontend" / "dist"
 
 from backend.app.core.config import settings
 from backend.app.db.base import Base
@@ -144,88 +152,48 @@ def health_check_alias():
     return {"status": "healthy", "service": "PharmaSafe Intelligence API", "version": "3.0.0"}
 
 
-@app.get("/", tags=["System"])
-def root(request: Request):
-    accept = request.headers.get("accept", "")
-    if "text/html" in accept:
-        from fastapi.responses import HTMLResponse
-        return HTMLResponse(content="""
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <title>PharmaSafe Intelligence API</title>
-          <style>
-            body { background: #0b0f19; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-            .card { background: #131b2e; border: 1px solid #1e293b; border-radius: 16px; padding: 40px; max-width: 540px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-            h1 { color: #10b981; font-size: 24px; margin-bottom: 8px; }
-            p { color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 12px 0; }
-            .badge { display: inline-block; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: bold; margin-bottom: 16px; }
-            .btn { display: inline-block; background: #10b981; color: #022c22; font-weight: bold; padding: 10px 24px; border-radius: 8px; text-decoration: none; margin: 8px; font-size: 14px; transition: all 0.2s; }
-            .btn:hover { background: #34d399; }
-            .btn-secondary { background: #1e293b; color: #38bdf8; border: 1px solid #334155; }
-            .btn-secondary:hover { background: #334155; }
-            code { background: #0f172a; color: #38bdf8; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
-          </style>
-        </head>
-        <body>
-          <div class="card">
-            <span class="badge">● PRODUCTION API ACTIVE</span>
-            <h1>PharmaSafe Intelligence Core API</h1>
-            <p>You have connected to the <strong>authoritative backend engine</strong>. This cloud node handles real-time pharmaceutical safety verification, Dead Batch cryptography, and AI surveillance.</p>
-            <p>To view the <strong>Visual Web Dashboard</strong>, please open your Frontend Web App deployment link (e.g. <code>pharmasafe-web.onrender.com</code>).</p>
-            <div style="margin-top: 24px;">
-              <a href="/docs" class="btn">Explore API Swagger Docs (/docs)</a>
-              <a href="/api/health" class="btn btn-secondary">Check System Health</a>
-            </div>
-          </div>
-        </body>
-        </html>
-        """)
-    return {
-        "message": "Welcome to PharmaSafe Intelligence Core API",
-        "service": "PharmaSafe Closed-Loop Medicine Safety Platform",
-        "docs": "/docs",
-        "health": "/api/health",
-        "api_v1": settings.API_V1_STR,
-    }
+# ── Serve React Frontend (SPA) ─────────────────────────────────────
+# Mount static assets from the Vite build output.
+# Falls back to index.html for any unknown path (React Router handles routing).
+
+if FRONTEND_DIST.exists():
+    # Mount compiled JS/CSS/image assets
+    assets_dir = FRONTEND_DIST / "assets"
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
+    logger.info(f"✅ Serving React frontend from: {FRONTEND_DIST}")
+else:
+    logger.warning(f"⚠️  Frontend dist not found at {FRONTEND_DIST} — run 'npm run build' in /frontend")
 
 
-# Catch-all fallback for frontend routes navigated directly on the backend domain
-@app.get("/{full_path:path}", tags=["System"], include_in_schema=False)
-def frontend_route_fallback(full_path: str, request: Request):
-    if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("redoc") or full_path.startswith("openapi.json"):
-        return JSONResponse(status_code=404, content={"detail": "API endpoint not found"})
-    
-    accept = request.headers.get("accept", "")
-    if "text/html" in accept:
-        from fastapi.responses import HTMLResponse
-        return HTMLResponse(content=f"""
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <title>PharmaSafe API Guidance</title>
-          <style>
-            body {{ background: #0b0f19; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }}
-            .card {{ background: #131b2e; border: 1px solid #1e293b; border-radius: 16px; padding: 40px; max-width: 540px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }}
-            h1 {{ color: #38bdf8; font-size: 22px; margin-bottom: 8px; }}
-            p {{ color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 12px 0; }}
-            code {{ background: #0f172a; color: #10b981; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 13px; }}
-            .btn {{ display: inline-block; background: #10b981; color: #022c22; font-weight: bold; padding: 10px 24px; border-radius: 8px; text-decoration: none; margin: 8px; font-size: 14px; }}
-          </style>
-        </head>
-        <body>
-          <div class="card">
-            <h1>Web Dashboard Route Detected</h1>
-            <p>You requested <code>/{full_path}</code> on the <strong>Backend API server</strong>.</p>
-            <p>The visual User Interface runs on your <strong>Frontend Web Service</strong> (e.g. <code>https://pharmasafe-web.onrender.com/{full_path}</code>).</p>
-            <div style="margin-top: 20px;">
-              <a href="/docs" class="btn">View Backend API Documentation</a>
-            </div>
-          </div>
-        </body>
-        </html>
-        """)
-    return JSONResponse(status_code=404, content={"detail": f"Route '/{full_path}' is a frontend UI route. Please access via the frontend web application."})
+@app.get("/", include_in_schema=False)
+def serve_index():
+    """Serve React app root."""
+    index = FRONTEND_DIST / "index.html"
+    if index.exists():
+        return FileResponse(str(index))
+    return JSONResponse(
+        status_code=200,
+        content={"message": "PharmaSafe API", "docs": "/docs", "health": "/api/health"},
+    )
 
+
+@app.get("/{full_path:path}", include_in_schema=False)
+def serve_spa(full_path: str):
+    """SPA catch-all — serve index.html for any frontend route so React Router works."""
+    # Let actual API/docs paths return 404 rather than the SPA
+    api_prefixes = ("api/", "docs", "redoc", "openapi.json", "favicon")
+    if any(full_path.startswith(p) for p in api_prefixes):
+        return JSONResponse(status_code=404, content={"detail": f"/{full_path} not found"})
+
+    # Try to serve a real file first (e.g. favicon.ico, robots.txt)
+    static_file = FRONTEND_DIST / full_path
+    if static_file.is_file():
+        return FileResponse(str(static_file))
+
+    # Fallback: always return index.html (React Router takes over)
+    index = FRONTEND_DIST / "index.html"
+    if index.exists():
+        return FileResponse(str(index))
+
+    return JSONResponse(status_code=404, content={"detail": "Frontend not built. Run npm run build."})
