@@ -774,9 +774,14 @@ class ApiClient {
     batch_number?: string;
     claimed_data?: Record<string, any>;
   }): Promise<PackageComparisonResult> {
+    const batchRef = payload.batch_number || payload.batch_id || 'B1001';
     return this.request<PackageComparisonResult>('/evidence/compare-package', {
       method: 'POST',
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        ...payload,
+        batch_number: batchRef,
+        batch_id: payload.batch_id || batchRef,
+      }),
     });
   }
 

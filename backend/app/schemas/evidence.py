@@ -47,9 +47,12 @@ class EvidenceResponse(BaseModel):
 
 
 class PackageComparisonRequest(BaseModel):
-    batch_number: str
+    batch_number: Optional[str] = None
+    batch_id: Optional[str] = None
+    evidence_id: Optional[str] = None
     simulated_ocr_text: Optional[str] = None
     captured_fields: Optional[Dict[str, Any]] = None
+    claimed_data: Optional[Dict[str, Any]] = None
 
 
 class PackageComparisonResponse(BaseModel):
@@ -61,3 +64,10 @@ class PackageComparisonResponse(BaseModel):
     match_count: int
     authoritative_batch_number: str
     timestamp: str
+    # Compatibility fields for frontend PackageComparisonResult:
+    evidence_id: Optional[str] = None
+    batch_id: Optional[str] = None
+    overall_verdict: Optional[str] = None
+    comparisons: Optional[Dict[str, Any]] = None
+    extracted_fields: Optional[Dict[str, Any]] = None
+    verified_at: Optional[str] = None

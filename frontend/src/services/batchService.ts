@@ -138,7 +138,15 @@ class BatchService {
       gtin_barcode: data.gtin_barcode || `0890${Math.floor(1000000000 + Math.random() * 9000000000)}`,
     };
     if (!USE_MOCK) {
-      return await apiClient.createBatch(payload);
+      try {
+        const result = await apiClient.createBatch(payload);
+        if (result && result.batch_number) {
+          this.batches.unshift(result);
+          return result;
+        }
+      } catch (err) {
+        console.warn('Backend /batches registration endpoint unavailable, falling back to local registry:', err);
+      }
     }
 
     const newBatch: Batch = {

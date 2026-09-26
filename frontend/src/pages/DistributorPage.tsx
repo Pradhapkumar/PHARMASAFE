@@ -16,8 +16,8 @@ import { InventoryRecord } from '../types/api';
 export const DistributorPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = (searchParams.get('tab') as 'incoming' | 'inventory' | 'transfers') || 'incoming';
-  const [activeTab, setActiveTab] = useState<'incoming' | 'inventory' | 'transfers'>(initialTab);
+  const initialTab = (searchParams.get('tab') as 'incoming' | 'inventory' | 'transfers' | 'driver_navigation' | 'verify_pharmacy') || 'incoming';
+  const [activeTab, setActiveTab] = useState<'incoming' | 'inventory' | 'transfers' | 'driver_navigation' | 'verify_pharmacy'>(initialTab);
 
   // Data States
   const [loading, setLoading] = useState(true);
@@ -48,6 +48,15 @@ export const DistributorPage: React.FC = () => {
   const [dispatchError, setDispatchError] = useState<string | null>(null);
   const [dispatchSuccess, setDispatchSuccess] = useState<any | null>(null);
 
+  // Pharmacy license verification
+  const [pharmacyVerifications, setPharmacyVerifications] = useState([
+    { id: 'PHARM-001', name: 'MedPlus Pharmacy #BLR-882', license: 'PHM-MH-2022-8812', gov_id: 'GSTIN-29ABCDE1234F1Z5', state: 'Karnataka', status: 'VERIFIED', verified_on: '2026-01-15' },
+    { id: 'PHARM-002', name: 'Apollo Pharmacy #CHN-241', license: 'PHM-TN-2023-5521', gov_id: 'GSTIN-33FGHIJ5678K2A6', state: 'Tamil Nadu', status: 'VERIFIED', verified_on: '2026-03-02' },
+    { id: 'PHARM-003', name: 'NetMeds Pharmacy #MUM-119', license: 'PHM-MH-2024-3310', gov_id: 'GSTIN-27KLMNO9012L3B7', state: 'Maharashtra', status: 'PENDING', verified_on: '' },
+    { id: 'PHARM-004', name: 'Wellness Pharmacy #DEL-077', license: 'PHM-DL-2021-7734', gov_id: 'GSTIN-07PQRST3456M4C8', state: 'Delhi', status: 'REVOKED', verified_on: '2025-11-08' },
+  ]);
+  const [verifyingPharmacy, setVerifyingPharmacy] = useState<string | null>(null);
+
   const loadAllData = async () => {
     try {
       setLoading(true);
@@ -72,7 +81,7 @@ export const DistributorPage: React.FC = () => {
     loadAllData();
   }, [statusFilter, search]);
 
-  const handleTabChange = (tab: 'incoming' | 'inventory' | 'transfers') => {
+  const handleTabChange = (tab: 'incoming' | 'inventory' | 'transfers' | 'driver_navigation' | 'verify_pharmacy') => {
     setActiveTab(tab);
     setSearchParams({ tab });
   };
@@ -278,6 +287,36 @@ export const DistributorPage: React.FC = () => {
         >
           <Send className="w-3.5 h-3.5" />
           <span>Outbound Pharmacy Transfers ({outgoingTransfers.length})</span>
+        </button>
+
+        <button
+          onClick={() => handleTabChange('driver_navigation')}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+            activeTab === 'driver_navigation'
+              ? 'bg-emerald-500 text-slate-950 shadow-[0_0_15px_rgba(16,185,129,0.3)]'
+              : 'text-slate-400 hover:text-white bg-slate-900 border border-slate-800'
+          }`}
+        >
+          <Truck className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Driver GPS Live Route Navigation</span>
+          <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-emerald-950 text-emerald-300 font-mono font-bold animate-pulse">
+            LIVE
+          </span>
+        </button>
+
+        <button
+          onClick={() => handleTabChange('verify_pharmacy')}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+            activeTab === 'verify_pharmacy'
+              ? 'bg-purple-500 text-slate-950 shadow-[0_0_15px_rgba(168,85,247,0.3)]'
+              : 'text-slate-400 hover:text-white bg-slate-900 border border-slate-800'
+          }`}
+        >
+          <ShieldCheck className="w-3.5 h-3.5" />
+          <span>Pharmacy License Verification</span>
+          <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-purple-950 text-purple-300 font-mono font-bold">
+            {pharmacyVerifications.filter(p => p.status === 'PENDING').length} Pending
+          </span>
         </button>
       </div>
 
@@ -530,6 +569,205 @@ export const DistributorPage: React.FC = () => {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: Driver GPS Live Route Navigation */}
+      {activeTab === 'driver_navigation' && (
+        <div className="space-y-6">
+          {/* Driver Telemetry & Delivery Progress Bar */}
+          <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400">
+                  <Truck className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-white">Active Driver GPS Route Navigation</h3>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-500/40 animate-pulse">
+                      ● IN-TRANSIT DELIVERY
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400">Real-time driver location, cold-chain sensor telemetry, and ETA countdown</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <span className="text-slate-400 text-[10px] uppercase font-mono block">Estimated Arrival</span>
+                  <span className="text-xl font-black text-emerald-400 font-mono">14 Mins</span>
+                </div>
+                <div className="h-8 w-px bg-slate-800" />
+                <div className="text-right">
+                  <span className="text-slate-400 text-[10px] uppercase font-mono block">Cold-Chain Temp</span>
+                  <span className="text-xl font-black text-cyan-400 font-mono">+4.2 °C</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Driver Profile Card & Vehicle Info */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+                <span className="text-[10px] font-mono uppercase text-slate-500 block">Assigned Driver</span>
+                <strong className="text-white text-sm block">Ramesh Singh</strong>
+                <span className="text-xs text-emerald-400 font-mono">ID: DRV-MH-8842 • Verified</span>
+              </div>
+              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+                <span className="text-[10px] font-mono uppercase text-slate-500 block">Government License Proof</span>
+                <strong className="text-white text-sm block">DL-04202100891</strong>
+                <span className="text-xs text-slate-400 font-mono">Commercial Transport Badge</span>
+              </div>
+              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+                <span className="text-[10px] font-mono uppercase text-slate-500 block">Refrigerated Vehicle</span>
+                <strong className="text-white text-sm block">MH-02-EQ-8812</strong>
+                <span className="text-xs text-cyan-400 font-mono">Cold-Chain Speed: 44 km/h</span>
+              </div>
+              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+                <span className="text-[10px] font-mono uppercase text-slate-500 block">Current GPS Coordinates</span>
+                <strong className="text-white text-sm font-mono block">19.0760° N, 72.8777° E</strong>
+                <span className="text-xs text-amber-400 font-mono">Bandra-Kurla Expressway</span>
+              </div>
+            </div>
+
+            {/* Simulated Live GPS Route Visualizer */}
+            <div className="p-6 rounded-xl bg-slate-950 border border-slate-800 space-y-4">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-slate-400 flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                  Depot A (Apollo Warehouse, Bhiwandi)
+                </span>
+                <span className="text-emerald-400 font-bold flex items-center gap-1.5">
+                  <Truck className="w-4 h-4 text-emerald-400 animate-bounce" />
+                  Live GPS Route: 68% Completed
+                </span>
+                <span className="text-slate-400 flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                  Destination: MedPlus Pharmacy (Bandra West)
+                </span>
+              </div>
+
+              {/* Animated Progress Bar */}
+              <div className="relative w-full h-3 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+                <div className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-500 rounded-full w-[68%] transition-all duration-1000" />
+              </div>
+
+              {/* Waypoint History Log */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 text-xs font-mono">
+                <div className="p-3 rounded-lg bg-slate-900/80 border border-slate-800">
+                  <span className="text-emerald-400 font-bold block">✓ 09:15 AM — Dispatched</span>
+                  <span className="text-slate-400 text-[11px]">Departure from Apollo Depot A. Seal #SL-8812 verified.</span>
+                </div>
+                <div className="p-3 rounded-lg bg-cyan-950/40 border border-cyan-500/40">
+                  <span className="text-cyan-300 font-bold block">⚡ 10:20 AM — Transit Checkpoint</span>
+                  <span className="text-slate-300 text-[11px]">Cold-chain telemetry nominal: +4.2°C. Speed 44 km/h.</span>
+                </div>
+                <div className="p-3 rounded-lg bg-slate-900/80 border border-slate-800">
+                  <span className="text-amber-400 font-bold block">⏳ 10:45 AM (ETA) — Arrival</span>
+                  <span className="text-slate-400 text-[11px]">Approaching MedPlus Pharmacy intake bay for QR scan.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 5: PHARMACY LICENSE VERIFICATION */}
+      {activeTab === 'verify_pharmacy' && (
+        <div className="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
+          <div className="p-5 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Pharmacy Identity & License Verification</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Verify government-issued pharmacy license, GSTIN, and Drug License before authorizing supply dispatch. Unverified or revoked pharmacies are blocked from receiving stock.</p>
+            </div>
+            <span className="px-3 py-1 rounded-lg bg-purple-950/60 border border-purple-500/40 text-purple-300 text-xs font-mono font-bold self-start shrink-0">
+              CDSCO Regulatory Gate
+            </span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-900/80 border-b border-slate-800 text-slate-400 uppercase font-mono text-[10px] tracking-wider">
+                <tr>
+                  <th className="p-3.5">Pharmacy Name</th>
+                  <th className="p-3.5">Drug License No.</th>
+                  <th className="p-3.5">GSTIN / Gov ID</th>
+                  <th className="p-3.5">State</th>
+                  <th className="p-3.5 text-center">Status</th>
+                  <th className="p-3.5 text-center">Verified On</th>
+                  <th className="p-3.5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60">
+                {pharmacyVerifications.map(pharmacy => (
+                  <tr key={pharmacy.id} className="hover:bg-slate-900/40 transition-colors">
+                    <td className="p-3.5">
+                      <div className="font-semibold text-white">{pharmacy.name}</div>
+                      <div className="text-[10px] text-slate-500 font-mono">{pharmacy.id}</div>
+                    </td>
+                    <td className="p-3.5 font-mono text-cyan-400">{pharmacy.license}</td>
+                    <td className="p-3.5 font-mono text-slate-300 text-[11px]">{pharmacy.gov_id}</td>
+                    <td className="p-3.5 text-slate-300">{pharmacy.state}</td>
+                    <td className="p-3.5 text-center">
+                      {pharmacy.status === 'VERIFIED' && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-950 border border-emerald-500/40 text-emerald-300 flex items-center gap-1 w-fit mx-auto">
+                          <CheckCircle2 className="w-2.5 h-2.5" /> VERIFIED
+                        </span>
+                      )}
+                      {pharmacy.status === 'PENDING' && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-950 border border-amber-500/40 text-amber-300 flex items-center gap-1 w-fit mx-auto">
+                          <AlertTriangle className="w-2.5 h-2.5" /> PENDING
+                        </span>
+                      )}
+                      {pharmacy.status === 'REVOKED' && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-950 border border-rose-500/40 text-rose-300 flex items-center gap-1 w-fit mx-auto">
+                          <ShieldAlert className="w-2.5 h-2.5" /> REVOKED
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-3.5 text-center font-mono text-slate-400">
+                      {pharmacy.verified_on || <span className="text-slate-600">—</span>}
+                    </td>
+                    <td className="p-3.5 text-right">
+                      <div className="flex items-center gap-2 justify-end">
+                        {pharmacy.status === 'PENDING' && (
+                          <button
+                            onClick={() => setPharmacyVerifications(prev => prev.map(p =>
+                              p.id === pharmacy.id ? { ...p, status: 'VERIFIED', verified_on: new Date().toISOString().slice(0, 10) } : p
+                            ))}
+                            className="px-2.5 py-1.5 rounded-lg bg-emerald-900/80 border border-emerald-600 text-emerald-200 text-[11px] font-bold hover:bg-emerald-800 transition-colors flex items-center gap-1"
+                          >
+                            <ShieldCheck className="w-3 h-3" /> Approve
+                          </button>
+                        )}
+                        {pharmacy.status === 'VERIFIED' && (
+                          <button
+                            onClick={() => setPharmacyVerifications(prev => prev.map(p =>
+                              p.id === pharmacy.id ? { ...p, status: 'REVOKED' } : p
+                            ))}
+                            className="px-2.5 py-1.5 rounded-lg bg-rose-900/80 border border-rose-600 text-rose-200 text-[11px] font-bold hover:bg-rose-800 transition-colors flex items-center gap-1"
+                          >
+                            <ShieldAlert className="w-3 h-3" /> Revoke
+                          </button>
+                        )}
+                        {pharmacy.status === 'REVOKED' && (
+                          <span className="text-[10px] text-rose-500 font-mono">Blocked — cannot receive stock</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="p-4 border-t border-slate-800 bg-slate-950/60 flex items-start gap-3">
+            <ShieldCheck className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-slate-400">
+              <strong className="text-purple-300">Dispatch Gate:</strong> Only pharmacies with <strong className="text-emerald-400">VERIFIED</strong> status can receive stock dispatch from this distributor hub.
+              PENDING pharmacies must complete government ID submission. REVOKED licenses are auto-blocked from all incoming transfers.
+            </p>
           </div>
         </div>
       )}

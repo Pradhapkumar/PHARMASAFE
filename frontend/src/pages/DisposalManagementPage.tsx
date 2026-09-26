@@ -72,13 +72,10 @@ export const DisposalManagementPage: React.FC = () => {
           </span>
         }
         actions={
-          <button
-            onClick={() => setShowDisposalModal(true)}
-            className="px-3.5 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-rose-600 text-white text-xs font-bold hover:brightness-110 transition-all flex items-center gap-1.5 shadow-[0_0_15px_rgba(139,92,246,0.3)]"
-          >
-            <Flame className="w-4 h-4" />
-            <span>Execute Operational Disposal</span>
-          </button>
+          <span className="px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 text-xs font-mono flex items-center gap-1.5">
+            <FileCheck className="w-3.5 h-3.5 text-purple-400" />
+            Historical Records Only — Read-Only View
+          </span>
         }
       />
 
@@ -175,16 +172,9 @@ export const DisposalManagementPage: React.FC = () => {
                     <span className="text-slate-500 text-[10px] block uppercase">Scale Tare</span>
                     <strong className="text-cyan-300">{ret.scale_weight_kg || '45.0'} kg</strong>
                   </div>
-                  <button
-                    onClick={() => {
-                      setBatchNumber(ret.batch_id);
-                      setQuantity(ret.quantity);
-                      setShowDisposalModal(true);
-                    }}
-                    className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-rose-600 border border-purple-500 text-white text-xs font-bold hover:brightness-110 transition-all shadow-md"
-                  >
-                    Complete Disposal (DISPOSED)
-                  </button>
+                  <span className="px-3.5 py-1.5 rounded-lg bg-purple-950/60 border border-purple-700 text-purple-300 text-xs font-mono font-bold">
+                    ✓ DISPOSED
+                  </span>
                 </div>
               </div>
             ))}
@@ -199,19 +189,11 @@ export const DisposalManagementPage: React.FC = () => {
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">
               Reverse Quarantine Intake Ledger
             </h3>
-            <p className="text-xs text-slate-400">Pallets awaiting physical weighing, verification, and operational disposal</p>
+            <p className="text-xs text-slate-400">Previous disposal records — all pallets that have completed physical weighing, verification, and operational processing.</p>
           </div>
-          <button
-            onClick={() => {
-              setBatchNumber('B1001');
-              setQuantity(1000);
-              setShowDisposalModal(true);
-            }}
-            className="text-xs font-semibold text-cyan-400 hover:underline flex items-center gap-1"
-          >
-            <span>Process Disposal B1001</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+          <span className="px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-500 text-xs font-mono">
+            Read-Only Archive
+          </span>
         </div>
 
         <div className="space-y-3">
@@ -243,16 +225,9 @@ export const DisposalManagementPage: React.FC = () => {
                   <span className="text-slate-500 text-[10px] block uppercase">Scale Weight</span>
                   <strong className="text-cyan-300">{item.weight_kg} kg</strong>
                 </div>
-                <button
-                  onClick={() => {
-                    setBatchNumber(item.batch_number);
-                    setQuantity(item.quantity);
-                    setShowDisposalModal(true);
-                  }}
-                  className="px-3 py-1.5 rounded-lg bg-purple-900/60 border border-purple-700 text-purple-200 text-xs font-bold hover:bg-purple-800 transition-colors"
-                >
-                  Record Disposal
-                </button>
+                <span className="px-3 py-1.5 rounded-lg bg-purple-950/60 border border-purple-700 text-purple-300 text-xs font-mono font-bold">
+                  ✓ DISPOSED
+                </span>
               </div>
             </div>
           ))}

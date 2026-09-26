@@ -973,6 +973,96 @@ export const PipelinePage: React.FC = () => {
         </div>
       </div>
 
+      {/* STOP-ON-ERROR DIAGNOSTIC BANNER WITH 1-CLICK RESOLUTION */}
+      {hasGovBlock && (
+        <div className="p-5 rounded-2xl bg-rose-950/60 border border-rose-500/60 shadow-[0_0_30px_rgba(244,63,94,0.25)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-pulse">
+          <div className="flex items-start gap-3.5">
+            <div className="p-2.5 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 shrink-0 mt-0.5">
+              <ShieldAlert className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-rose-200 uppercase tracking-wider">
+                  EXECUTION HALTED — REGULATORY GOV GATE BLOCK DETECTED
+                </h3>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-900 text-rose-200 border border-rose-600">
+                  STOPPED
+                </span>
+              </div>
+              <p className="text-xs text-rose-300/90 mt-1 font-mono">
+                {scenario === 'B_SWFT'
+                  ? 'CRITICAL ERROR: SwiftMed Logistics wholesale distribution license is EXPIRED (DIST-DL-2020-5531). Intercepted by CDSCO Governance Gate.'
+                  : 'CRITICAL ERROR: QuickPharma retail store license is REVOKED (PHM-UP-2018-2241). Point-of-care scan and dispensing prohibited.'}
+              </p>
+              <div className="mt-2 text-[11px] text-slate-300 font-mono flex items-center gap-2">
+                <span className="text-amber-400">💡 Recommended Solution:</span>
+                <span>Apply regulatory re-authorization to update government registry status to AUTHORIZED and resume automated execution.</span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              setScenario('NORMAL');
+              addLog(activeStep, 'REGULATORY RESOLUTION APPLIED: Government license re-authorized and cleared on central ledger.', 'success');
+              setIsAutoRunning(true);
+            }}
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.4)] shrink-0 cursor-pointer"
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span>🔧 Resolve & Resume Pipeline Execution</span>
+          </button>
+        </div>
+      )}
+
+      {/* PIPELINE FULLY COMPLETE — ALL STAGES AUTO-TOGGLED ✅ */}
+      {!hasGovBlock && completedCount === 10 && (
+        <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-950/80 to-cyan-950/60 border border-emerald-500/50 shadow-[0_0_40px_rgba(16,185,129,0.25)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 shrink-0">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-sm font-bold text-emerald-200 uppercase tracking-wider">
+                  All 10 Stages Auto-Completed — Closed-Loop Lifecycle Sealed
+                </h3>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-900 text-emerald-200 border border-emerald-600">
+                  ✓ DONE
+                </span>
+              </div>
+              <p className="text-xs text-emerald-300/90 mt-1 font-mono">
+                Batch <strong>{batchInput}</strong> has completed the full manufacturer-to-pharmacist lifecycle. QR verified, expiry tracked, sales logged, returns processed. Chain of custody permanently sealed on ledger.
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-mono">
+                <span className="px-2 py-0.5 rounded bg-emerald-950 border border-emerald-700 text-emerald-400">✓ Manufacture & QR Approval</span>
+                <span className="px-2 py-0.5 rounded bg-emerald-950 border border-emerald-700 text-emerald-400">✓ Regulatory Authorization</span>
+                <span className="px-2 py-0.5 rounded bg-emerald-950 border border-emerald-700 text-emerald-400">✓ Distributor Verification</span>
+                <span className="px-2 py-0.5 rounded bg-emerald-950 border border-emerald-700 text-emerald-400">✓ Pharmacist QR Scan</span>
+                <span className="px-2 py-0.5 rounded bg-emerald-950 border border-emerald-700 text-emerald-400">✓ Sales Logged</span>
+                <span className="px-2 py-0.5 rounded bg-emerald-950 border border-emerald-700 text-emerald-400">✓ Returns & Disposal</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 shrink-0">
+            <a
+              href={`/batches/${batchInput}`}
+              className="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:bg-emerald-400 transition-all"
+            >
+              <CheckSquare className="w-4 h-4" />
+              View Sealed Passport
+            </a>
+            <button
+              onClick={resetToStep1}
+              className="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-bold text-xs flex items-center gap-2 hover:bg-slate-700 transition-colors"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              Run New Batch
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ─── TAB 1: 10-Stage Pipeline Lifecycle ─── */}
       {activeTab === 'pipeline' && (
         <div className="space-y-6">

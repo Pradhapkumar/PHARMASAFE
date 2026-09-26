@@ -1,6 +1,5 @@
 import os
-from typing import List, Union
-from pydantic import field_validator
+from typing import List
 from pydantic_settings import BaseSettings
 
 
@@ -15,18 +14,11 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
 
-    # Database: Default to SQLite for rapid local dev; set to PostgreSQL in .env for production
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./pharmasafe.db")
+    # Database — SQLite locally, PostgreSQL on Render via DATABASE_URL env var
+    DATABASE_URL: str = "sqlite:///./pharmasafe.db"
 
-    # CORS — explicit origins only; no wildcard when credentials are used
-    BACKEND_CORS_ORIGINS: List[str] = [
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "http://localhost:3000",
-        "http://localhost:8080",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:5174",
-    ]
+    # CORS — explicit list; FRONTEND_URL injected at runtime for Render deployment
+    FRONTEND_URL: str = ""   # e.g. https://pharmasafe-web.onrender.com
 
     # File Storage Paths
     STORAGE_DIR: str = "./storage"
@@ -35,10 +27,30 @@ class Settings(BaseSettings):
     EVIDENCE_DIR: str = "./storage/evidence"
 
     # Business Rule Thresholds
-    QUANTITY_DISCREPANCY_TOLERANCE: int = 3   # Units allowed before raising alert
+    QUANTITY_DISCREPANCY_TOLERANCE: int = 3
     AI_EXPIRY_RISK_THRESHOLD: float = 0.75
     AI_ANOMALY_SENSITIVITY: float = 0.80
     AI_REENTRY_CRITICAL_THRESHOLD: float = 0.85
+
+    @property
+    def all_cors_origins(self) -> List[str]:
+        """Merge static local origins with the deployed frontend URL."""
+        base = [
+            "http://localhost:5173",
+            "http://localhost:5174",
+            "http://localhost:3000",
+            "http://localhost:8080",
+            "http://127.0.0.1:5173",
+            "http://127.0.0.1:5174",
+        ]
+        if self.FRONTEND_URL:
+            base.append(self.FRONTEND_URL.rstrip("/"))
+        return base
+
+    # Keep backward-compat alias used in main.py
+    @property
+    def BACKEND_CORS_ORIGINS(self) -> List[str]:  # noqa: N802
+        return self.all_cors_origins
 
     class Config:
         case_sensitive = True
@@ -52,3 +64,4 @@ settings = Settings()
 os.makedirs(settings.PHOTO_UPLOAD_DIR, exist_ok=True)
 os.makedirs(settings.CERTIFICATE_DIR, exist_ok=True)
 os.makedirs(settings.EVIDENCE_DIR, exist_ok=True)
+

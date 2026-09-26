@@ -1,15 +1,16 @@
 services:
-  # 1. FastAPI Backend API
+  # ── 1. FastAPI Backend ──────────────────────────────────────────────
   - type: web
     name: pharmasafe-api
     runtime: python
-    rootDir: backend
+    rootDir: .          # run from repo root so "from backend.app..." imports work
     plan: free
-    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install --upgrade pip && pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.9
+        value: "3.11.9"
       - key: ENVIRONMENT
         value: production
       - key: DEBUG
@@ -17,9 +18,13 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
-        value: sqlite:///./pharmasafe.db
+        fromDatabase:
+          name: pharmasafe-db
+          property: connectionString
+      - key: FRONTEND_URL
+        sync: false            # set manually after frontend deploys
 
-  # 2. React Vite Web Frontend
+  # ── 2. React Vite Static Frontend ──────────────────────────────────
   - type: web
     name: pharmasafe-web
     runtime: static
@@ -33,8 +38,11 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_BASE_URL
-        fromService:
-          type: web
-          name: pharmasafe-api
-          property: host
-        transform: https://$VALUE/api/v1
+        sync: false            # set to https://pharmasafe-api.onrender.com/api/v1
+
+# ── 3. PostgreSQL Database ──────────────────────────────────────────
+databases:
+  - name: pharmasafe-db
+    plan: free
+    databaseName: pharmasafe
+    user: pharmasafe_user

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { PlusCircle, CheckCircle2, Shield, QrCode, ArrowRight, AlertTriangle, ExternalLink } from 'lucide-react';
+import { PlusCircle, CheckCircle2, Shield, QrCode, ArrowRight, AlertTriangle, ExternalLink, Clock, XCircle, CheckSquare, RefreshCw } from 'lucide-react';
 import PageHeader from '../components/layout/PageHeader';
 import Modal from '../components/ui/Modal';
 import QrCodeView from '../components/ui/QrCodeView';
 import batchService from '../services/batchService';
 import medicineService, { Medicine } from '../services/medicineService';
+
+// --- Pending QR Approval list (session-level state)
+const pendingApprovals: any[] = [];
 
 export const BatchRegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -31,6 +34,12 @@ export const BatchRegisterPage: React.FC = () => {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registeredBatch, setRegisteredBatch] = useState<any | null>(null);
+
+  // QR Approval Workflow
+  const [approvalList, setApprovalList] = useState<any[]>(pendingApprovals);
+  const [approvalStatus, setApprovalStatus] = useState<Record<string, 'PENDING' | 'APPROVED' | 'REJECTED'>>({});
+  const [rejectReason, setRejectReason] = useState('');
+  const [showRejectModal, setShowRejectModal] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -86,11 +95,22 @@ export const BatchRegisterPage: React.FC = () => {
         unit: unit as any,
       });
       setRegisteredBatch(res);
-      if (res && res.batch_number) {
-        localStorage.setItem('pharmasafe_latest_batch', res.batch_number);
-      } else {
-        localStorage.setItem('pharmasafe_latest_batch', batchNumber.trim().toUpperCase());
-      }
+      const bNum = res?.batch_number || batchNumber.trim().toUpperCase();
+      if (bNum) localStorage.setItem('pharmasafe_latest_batch', bNum);
+
+      // Add to pending QR approval queue
+      const newEntry = {
+        id: bNum,
+        batch_number: bNum,
+        medicine_name: medicines.find(m => m.id === medicineId)?.brand_name || 'Medicine',
+        quantity,
+        expiry_date: expiryDate,
+        qr_payload: (res as any)?.qr_payload || `PHARMASAFE:${bNum}:${(res as any)?.gtin_barcode || '08901000'}`,
+        submitted_at: new Date().toLocaleTimeString(),
+      };
+      pendingApprovals.unshift(newEntry);
+      setApprovalList([...pendingApprovals]);
+      setApprovalStatus(prev => ({ ...prev, [bNum]: 'PENDING' }));
     } catch (err: any) {
       const rawMsg = err.message || 'Registration failed. Please check backend connection.';
       const cleanMsg = rawMsg.replace(/^\[\d+\]\s*/, '');
@@ -98,6 +118,16 @@ export const BatchRegisterPage: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleApprove = (batchId: string) => {
+    setApprovalStatus(prev => ({ ...prev, [batchId]: 'APPROVED' }));
+  };
+
+  const handleReject = (batchId: string) => {
+    setApprovalStatus(prev => ({ ...prev, [batchId]: 'REJECTED' }));
+    setShowRejectModal(null);
+    setRejectReason('');
   };
 
   return (
@@ -197,6 +227,96 @@ export const BatchRegisterPage: React.FC = () => {
                 sublabel="Scan with Mobile App"
               />
             </div>
+          </div>
+        )}
+
+        {/* QR Approval Queue */}
+        {approvalList.length > 0 && (
+          <div className="mb-6 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center gap-2">
+                <Clock className="w-4 h-4 text-amber-400" />
+                QR Code Approval Queue ({approvalList.length} batch{approvalList.length > 1 ? 'es' : ''} pending quality review)
+              </h3>
+            </div>
+            {approvalList.map(entry => {
+              const status = approvalStatus[entry.id] || 'PENDING';
+              return (
+                <div
+                  key={entry.id}
+                  className={`p-4 rounded-2xl border flex flex-col md:flex-row items-start md:items-center gap-4 transition-all ${
+                    status === 'APPROVED'
+                      ? 'bg-emerald-950/40 border-emerald-500/40'
+                      : status === 'REJECTED'
+                      ? 'bg-rose-950/40 border-rose-500/40 opacity-70'
+                      : 'bg-amber-950/20 border-amber-500/30'
+                  }`}
+                >
+                  {/* QR Code Preview */}
+                  <div className="shrink-0">
+                    <QrCodeView
+                      value={entry.qr_payload}
+                      size={90}
+                      label={entry.batch_number}
+                      sublabel="Scan to Verify"
+                    />
+                  </div>
+
+                  {/* Batch Info */}
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono font-bold text-white">{entry.batch_number}</span>
+                      <span className="text-xs text-slate-400">— {entry.medicine_name}</span>
+                      {status === 'PENDING' && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-950 border border-amber-500/40 text-amber-300 flex items-center gap-1">
+                          <Clock className="w-2.5 h-2.5" /> PENDING APPROVAL
+                        </span>
+                      )}
+                      {status === 'APPROVED' && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-950 border border-emerald-500/40 text-emerald-300 flex items-center gap-1">
+                          <CheckCircle2 className="w-2.5 h-2.5" /> QR APPROVED — ACTIVE
+                        </span>
+                      )}
+                      {status === 'REJECTED' && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-950 border border-rose-500/40 text-rose-300 flex items-center gap-1">
+                          <XCircle className="w-2.5 h-2.5" /> QR REJECTED
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-slate-400 font-mono">
+                      Qty: <strong className="text-slate-200">{entry.quantity.toLocaleString()}</strong> units &nbsp;|&nbsp;
+                      Expiry: <strong className="text-slate-200">{entry.expiry_date}</strong> &nbsp;|&nbsp;
+                      Submitted: <strong className="text-slate-200">{entry.submitted_at}</strong>
+                    </div>
+                    <div className="text-[10px] text-slate-500 font-mono break-all">
+                      QR Payload: {entry.qr_payload}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  {status === 'PENDING' && (
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleApprove(entry.id)}
+                        className="px-3 py-1.5 rounded-lg bg-emerald-900/80 border border-emerald-600 text-emerald-200 text-xs font-bold hover:bg-emerald-800 transition-colors flex items-center gap-1.5"
+                      >
+                        <CheckSquare className="w-3.5 h-3.5" />
+                        Approve QR
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowRejectModal(entry.id)}
+                        className="px-3 py-1.5 rounded-lg bg-rose-900/80 border border-rose-600 text-rose-200 text-xs font-bold hover:bg-rose-800 transition-colors flex items-center gap-1.5"
+                      >
+                        <XCircle className="w-3.5 h-3.5" />
+                        Reject
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -358,6 +478,44 @@ export const BatchRegisterPage: React.FC = () => {
           </div>
         </form>
       </div>
+
+      {/* Reject Reason Modal */}
+      <Modal
+        isOpen={!!showRejectModal}
+        onClose={() => setShowRejectModal(null)}
+        title="Reject QR Code — Reason Required"
+      >
+        <div className="space-y-4">
+          <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-500/40 text-xs text-rose-300">
+            Rejecting this QR will quarantine the batch and flag it for quality investigation. Please provide a rejection reason.
+          </div>
+          <div>
+            <label className="block text-xs font-mono uppercase tracking-wider text-slate-400 mb-1">Rejection Reason *</label>
+            <textarea
+              rows={3}
+              value={rejectReason}
+              onChange={e => setRejectReason(e.target.value)}
+              placeholder="e.g. Label data mismatch — expiry date differs from physical packaging..."
+              className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-rose-500"
+            />
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            <button
+              onClick={() => setShowRejectModal(null)}
+              className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700"
+            >
+              Cancel
+            </button>
+            <button
+              disabled={!rejectReason.trim()}
+              onClick={() => showRejectModal && handleReject(showRejectModal)}
+              className="px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-500 disabled:opacity-50"
+            >
+              Confirm Rejection
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

@@ -149,9 +149,11 @@ export default function InvestigationDetailPage() {
     setComparingEvidence(ev);
     setComparing(true);
     try {
+      const batchRef = (dossier as any).batch_number || dossier.batch_id || 'B1001';
       const res = await apiClient.comparePackageEvidence({
         evidence_id: ev.evidence_id,
-        batch_id: dossier.batch_id || 'B1001'
+        batch_id: dossier.batch_id || batchRef,
+        batch_number: batchRef,
       });
       setComparisonResult(res);
     } catch (err: any) {
